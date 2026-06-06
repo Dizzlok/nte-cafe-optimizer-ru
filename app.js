@@ -478,7 +478,7 @@ function showResults(data) {
     <div class="result-stat-row">
       <div class="result-stat">
         <div class="result-stat-label">Traffic</div>
-        <div class="result-stat-value">${data.traffic.toFixed(0)}</div>
+        <div class="result-stat-value">${data.traffic.toFixed(2)}</div>
       </div>
       <div class="result-stat">
         <div class="result-stat-label">Price Buff</div>
