@@ -334,7 +334,7 @@ function runOptimizer() {
     for (const sub of trendingSubItems) { if (ingredients.includes(sub)) { subMatch = true; break; } }
     const ingMatch = trendMatch && (ingredients.includes(trendMatch) || subMatch);
     const isTrending = typeMatch || ingMatch;
-    ownedDishes.push({ name: d.name, type: d.type, basePrice: base + (isTrending ? trendBonus : 0), isTrending });
+    ownedDishes.push({ name: d.name, type: d.type, basePrice: base, isTrending });
   });
 
   // Build owned character pool from master data + user state
@@ -430,7 +430,7 @@ function runOptimizer() {
 
       const trafficRatio = currentTraffic / 100;
       const totalIncome = testMenu.reduce((sum, d) =>
-        sum + (d.basePrice + currentPriceBuff) * currentPriceMultiplier * trafficRatio, 0);
+        sum + ((d.basePrice + currentPriceBuff) * currentPriceMultiplier + (d.isTrending ? trendBonus : 0)) * trafficRatio, 0);
 
       if (totalIncome > bestScore) {
         bestScore = totalIncome;
@@ -502,7 +502,7 @@ function showResults(data) {
     <div class="result-section-title">🍽️ Best Menu</div>
     <div class="result-menu">
       ${data.dishes.map(d => {
-        const finalPrice = (d.basePrice + data.priceBuff) * data.priceMultiplier;
+        const finalPrice = (d.basePrice + data.priceBuff) * data.priceMultiplier + (d.isTrending ? trendBonus : 0);
         return `
           <div class="result-dish">
             <div class="result-dish-name">
