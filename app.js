@@ -1,3 +1,4 @@
+import masterDataJson from './data.json' with { type: 'json' };
 // ── STORAGE KEYS ───────────────────────────────────────────────────────────
 const DATA_KEY     = 'cafe_origen_data_v2';   // { dishes: {}, characters: {} } — keyed by name
 const SETTINGS_KEY = 'cafe_origen_settings';
@@ -12,24 +13,14 @@ let settings = { cafesOwned: 5, trendCategory: '', trendBonus: 1.0, popularityBo
 
 // ── LOAD ───────────────────────────────────────────────────────────────────
 function init() {
+  masterData = masterDataJson;
   loadSettings();
-  await loadMasterData();
   loadUserState();
   populateTrendDropdown();
   renderDishes();
   renderCharacters();
   updateRosterSummary();
   applySettings();
-}
-
-async function loadMasterData() {
-  try {
-    const res = await fetch('data.json');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    masterData = await res.json();
-  } catch (e) {
-    console.warn('fetch data.json failed, using inline fallback:', e);
-  }
 }
 
 function loadUserState() {
