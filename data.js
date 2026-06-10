@@ -33,6 +33,7 @@ const MASTER_DATA = {
     { "name": "Tomato & Fried Egg", "type": "Main Dishes", "ingredients": "Flour, Apple, Eggs", "priceL1": 4.0, "priceL2": 11.4 },
     { "name": "Tuna Sandwich", "type": "Main Dishes", "ingredients": "Flour, Lettuce, Fish", "priceL1": 4.6, "priceL2": 11.8 },
     { "name": "Amber Glamor", "type": "Beverages", "ingredients": "Coffee Beans, Milk, Skibbles, Orange", "priceL1": 5.1, "priceL2": 12.2 },
+    { "name": "Matacha Lava Mousse", "type": "Desserts", "ingredients": "Flour, Milk, Matcha Powder", "priceL1": 5.5, "priceL2": 12.6 },
     { "name": "Snowy Latte", "type": "Beverages", "ingredients": "Coffee Beans, Milk, Whipping Cream, Cocoa Powder", "priceL1": 6, "priceL2": 13 },
     { "name": "Thick-Cut Fresh Beef Sandwich", "type": "Main Dishes", "ingredients": "Flour, Beef, Lettuce, Butter", "priceL1": 6.4, "priceL2": 13.5 },
     { "name": "Red Bean & Butter Crossiant", "type": "Main Dishes", "ingredients": "Flour, Butter, Red Beans", "priceL1": 7, "priceL2": 14 },
