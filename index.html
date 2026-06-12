@@ -117,10 +117,10 @@
   const today = new Date().toISOString().split('T')[0];
   const s = document.createElement('script');
   s.src = `https://cdn.jsdelivr.net/gh/Kuro-121/NTE-CafeOptimizer@main/data.js?date=${today}`;
-  s.async = false; // ← ВОТ ЭТА СТРОКА КРИТИЧНА
+  s.async = false;
   document.head.appendChild(s);
-</script>
-<script src="localization.js"></script>
-<script src="app.js"></script>
+    </script>
+    <script src="localization.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
