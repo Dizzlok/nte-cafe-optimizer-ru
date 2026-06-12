@@ -1,124 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cafe by Origen — Optimizer</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafe by Origen — Оптимизатор</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="grain"></div>
-
-  <header>
-    <div class="header-inner">
-      <div class="logo">
-        <span class="logo-icon">☕</span>
-        <div>
-          <div class="logo-title">Cafe by Origen</div>
-          <div class="logo-sub">Roster Optimizer</div>
+    <div class="grain"></div>
+    <header>
+        <div class="header-inner">
+            <div class="logo">
+                <span class="logo-icon">☕</span>
+                <div>
+                    <div class="logo-title">Cafe by Origen</div>
+                    <div class="logo-sub">Оптимизатор ростера</div>
+                </div>
+            </div>
+            <nav class="tabs">
+                <button class="tab active" data-tab="optimizer">Оптимизатор</button>
+                <button class="tab" data-tab="dishes">Блюда</button>
+                <button class="tab" data-tab="characters">Персонажи</button>
+            </nav>
         </div>
-      </div>
-      <nav class="tabs">
-        <button class="tab active" data-tab="optimizer">Optimizer</button>
-        <button class="tab" data-tab="dishes">Dishes</button>
-        <button class="tab" data-tab="characters">Characters</button>
-      </nav>
-    </div>
-  </header>
+    </header>
 
-  <main>
+    <main>
+        <!-- Вкладка: Оптимизатор -->
+        <section id="tab-optimizer" class="tab-content active">
+            <div class="optimizer-grid">
+                <div class="panel">
+                    <div class="panel-title">Настройки</div>
+                    <div class="field-group">
+                        <label for="cafesOwned">Кафе в собственности</label>
+                        <span class="field-hint">Макс. блюд и персонажей</span>
+                        <select id="cafesOwned">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5" selected>5</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="trendCategory">Текущий тренд</label>
+                        <select id="trendCategory">
+                            <option value="">— Нет —</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="trendBonus">Бонус тренда (+Fons)</label>
+                        <input type="number" id="trendBonus" value="0" step="0.01">
+                    </div>
+                    <div class="field-group">
+                        <label for="popularityBonus">Бонус популярности</label>
+                        <input type="number" id="popularityBonus" value="0" step="0.01">
+                    </div>
+                    <button id="btnRun" class="btn-run">
+                        <span class="btn-icon"></span>
+                        <span>Рассчитать</span>
+                    </button>
+                    <div id="rosterSummary" class="roster-summary"></div>
+                </div>
 
-    <!-- ── OPTIMIZER TAB ── -->
-    <section id="tab-optimizer" class="tab-content active">
-      <div class="optimizer-grid">
+                <div class="panel full-panel">
+                    <div class="panel-title">Результаты</div>
+                    <div id="resultsArea">
+                        <div class="results-placeholder">
+                            <div class="placeholder-icon">☕</div>
+                            <p>Настройте параметры и запустите оптимизатор, чтобы увидеть лучший состав.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <div class="panel settings-panel">
-          <h2 class="panel-title">Settings</h2>
+        <!-- Вкладка: Блюда -->
+        <section id="tab-dishes" class="tab-content">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Блюда</div>
+                    <div style="display:flex;gap:0.5rem">
+                        <button id="btnToggleAllOwned" class="btn-bulk">Выбрать все</button>
+                        <button id="btnToggleAllLevel" class="btn-bulk">Поставить все Ур. 2</button>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>В наличии</th>
+                                <th>Уровень</th>
+                                <th>Название</th>
+                                <th>Тип</th>
+                                <th>Ингредиенты</th>
+                                <th>Цена L1</th>
+                                <th>Цена L2</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dishTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
-          <div class="field-group">
-            <label>Cafes Owned</label>
-            <input type="number" id="cafesOwned" min="1" max="10" value="5" />
-            <span class="field-hint">Sets max dishes &amp; characters</span>
-          </div>
+        <!-- Вкладка: Персонажи -->
+        <section id="tab-characters" class="tab-content">
+            <div class="panel">
+                <div class="panel-title">Персонажи</div>
+                <div id="charCards" class="char-cards"></div>
+            </div>
+        </section>
+    </main>
 
-          <div class="field-group">
-            <label>Trend</label>
-            <select id="trendCategory">
-              <option value="">— None —</option>
-            </select>
-          </div>
-
-          <div class="field-group">
-            <label>Trend Bonus (+Fons)</label>
-            <input type="number" id="trendBonus" step="0.01" value="1.00" />
-          </div>
-
-          <div class="field-group">
-            <label>Popularity Bonus</label>
-            <input type="number" id="popularityBonus" step="0.01" value="0" />
-          </div>
-
-          <button class="btn-run" id="btnRun">
-            <span class="btn-icon">⚡</span> Run Optimizer
-          </button>
-
-          <div class="roster-summary" id="rosterSummary"></div>
-        </div>
-
-        <div class="panel results-panel">
-          <h2 class="panel-title">Results</h2>
-          <div id="resultsArea" class="results-placeholder">
-            <div class="placeholder-icon">☕</div>
-            <p>Configure your settings and run the optimizer to see the best roster.</p>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ── DISHES TAB ── -->
-    <section id="tab-dishes" class="tab-content">
-      <div class="panel full-panel">
-        <div class="panel-header">
-          <h2 class="panel-title">Dishes</h2>
-          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
-            <button class="btn-bulk" id="btnToggleAllOwned">Own All</button>
-            <button class="btn-bulk" id="btnToggleAllLevel">Set All L2</button>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table id="dishTable">
-            <thead>
-              <tr>
-                <th>Owned</th>
-                <th>Level</th>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Ingredients</th>
-                <th>Price L1</th>
-                <th>Price L2</th>
-              </tr>
-            </thead>
-            <tbody id="dishTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── CHARACTERS TAB ── -->
-    <section id="tab-characters" class="tab-content">
-      <div class="panel full-panel">
-        <div class="panel-header">
-          <h2 class="panel-title">Characters</h2>
-        </div>
-        <div id="charCards" class="char-cards"></div>
-      </div>
-    </section>
-
-  </main>
-  
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+    <script src="https://githubusercontent.com"></script>
+    <script src="localization.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

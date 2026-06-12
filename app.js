@@ -1,13 +1,8 @@
 // ── STORAGE KEYS ───────────────────────────────────────────────────────────
-const DATA_KEY     = 'cafe_origen_data_v2';   // { dishes: {}, characters: {} } — keyed by name
+const DATA_KEY     = 'cafe_origen_data_v2';
 const SETTINGS_KEY = 'cafe_origen_settings';
-
-// Master data from data.json (never mutated, never stored)
 let masterData = { ingredients: [], dishes: [], characters: [] };
-
-// User state: { dishes: { [name]: { owned, level } }, characters: { [name]: { owned, level } } }
 let userState = { dishes: {}, characters: {} };
-
 let settings = { cafesOwned: 5, trendCategory: '', trendBonus: 1.0, popularityBonus: 0 };
 
 // ── LOAD ───────────────────────────────────────────────────────────────────
@@ -23,8 +18,6 @@ function init() {
   applySettings();
 }
 
-// Fills in default entries for any dish/character not yet in userState.
-// This runs after loadUserState so existing saves are preserved.
 function seedUserState() {
   masterData.dishes.forEach(d => {
     if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
@@ -40,7 +33,6 @@ function loadUserState() {
     const saved = localStorage.getItem(DATA_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Guard against corrupted array data from a previous bad save
       if (Array.isArray(parsed.dishes) || Array.isArray(parsed.characters)) {
         console.warn('Corrupt userState detected in localStorage, resetting.');
         localStorage.removeItem(DATA_KEY);
@@ -84,7 +76,7 @@ function applySettings() {
   document.getElementById('popularityBonus').value = settings.popularityBonus;
 }
 
-// ── TABS ───────────────────────────────────────────────────────────────────
+// ── TABS ──────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -94,11 +86,9 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
-// ── TREND DROPDOWN ─────────────────────────────────────────────────────────
+// ─ TREND DROPDOWN ─────────────────────────────────────────────────────────
 function populateTrendDropdown() {
   const sel = document.getElementById('trendCategory');
-
-  // Collect options: dish types + ingredient names + ingredient categories (like 'Fruit')
   const dishTypes = [...new Set(masterData.dishes.map(d => d.type))].sort();
   const ingNames  = masterData.ingredients.map(i => i.name).sort();
   const ingCats   = [...new Set(masterData.ingredients.map(i => i.category).filter(Boolean))].sort();
@@ -106,11 +96,11 @@ function populateTrendDropdown() {
   const addGroup = (label, items) => {
     if (!items.length) return;
     const grp = document.createElement('optgroup');
-    grp.label = label;
+    grp.label = TRANSLATIONS[label] || label; // <-- перевод заголовка группы
     items.forEach(item => {
       const opt = document.createElement('option');
       opt.value = item;
-      opt.textContent = item;
+      opt.textContent = TRANSLATIONS[item] || item;
       if (item === settings.trendCategory) opt.selected = true;
       grp.appendChild(opt);
     });
@@ -131,6 +121,7 @@ function renderDishes() {
     if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
     const us = userState.dishes[d.name];
     const tr = document.createElement('tr');
+
     tr.innerHTML = `
       <td style="text-align:center">
         <input type="checkbox" data-dish-owned="${d.name}" ${us.owned ? 'checked' : ''} />
@@ -141,9 +132,11 @@ function renderDishes() {
           <option value="2" ${us.level == 2 ? 'selected' : ''}>L2</option>
         </select>
       </td>
-      <td class="name-col">${d.name}</td>
-      <td class="type-col">${d.type}</td>
-      <td style="font-size:0.75rem;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text3)">${d.ingredients}</td>
+      <td class="name-col">${TRANSLATIONS[d.name] || d.name}</td>
+      <td class="type-col">${TRANSLATIONS[d.type] || d.type}</td>
+      <td style="font-size:0.75rem;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text3)">
+        ${d.ingredients.split(',').map(ing => TRANSLATIONS[ing.trim()] || ing.trim()).join(', ')}
+      </td>
       <td>${d.priceL1}</td>
       <td>${d.priceL2}</td>
     `;
@@ -154,7 +147,8 @@ function renderDishes() {
     cb.addEventListener('change', () => {
       const name = cb.dataset.dishOwned;
       userState.dishes[name].owned = cb.checked;
-      saveUserState(); updateRosterSummary();
+      saveUserState();
+      updateRosterSummary();
     });
   });
 
@@ -166,10 +160,9 @@ function renderDishes() {
     });
   });
 
-  // ── Bulk toggle: Own All / Unown All
   const btnOwned = document.getElementById('btnToggleAllOwned');
   const allOwned = masterData.dishes.every(d => userState.dishes[d.name]?.owned);
-  btnOwned.textContent = allOwned ? 'Unown All' : 'Own All';
+  btnOwned.textContent = allOwned ? 'Сбросить все' : 'Выбрать все';
   btnOwned.classList.toggle('active', allOwned);
   btnOwned.onclick = () => {
     const nowAllOwned = masterData.dishes.every(d => userState.dishes[d.name]?.owned);
@@ -177,13 +170,14 @@ function renderDishes() {
       if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
       userState.dishes[d.name].owned = !nowAllOwned;
     });
-    saveUserState(); updateRosterSummary(); renderDishes();
+    saveUserState();
+    updateRosterSummary();
+    renderDishes();
   };
 
-  // ── Bulk toggle: Set All L2 / Set All L1
   const btnLevel = document.getElementById('btnToggleAllLevel');
   const allL2 = masterData.dishes.every(d => userState.dishes[d.name]?.level === 2);
-  btnLevel.textContent = allL2 ? 'Set All L1' : 'Set All L2';
+  btnLevel.textContent = allL2 ? 'Установить все L1' : 'Установить все L2';
   btnLevel.classList.toggle('active', allL2);
   btnLevel.onclick = () => {
     const nowAllL2 = masterData.dishes.every(d => userState.dishes[d.name]?.level === 2);
@@ -191,7 +185,8 @@ function renderDishes() {
       if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
       userState.dishes[d.name].level = nowAllL2 ? 1 : 2;
     });
-    saveUserState(); renderDishes();
+    saveUserState();
+    renderDishes();
   };
 }
 
@@ -204,17 +199,15 @@ function renderCharacters() {
     if (!userState.characters[c.name]) userState.characters[c.name] = { owned: false, level: 1 };
     const us = userState.characters[c.name];
     const isOwned = us.owned;
-
     const card = document.createElement('div');
     card.className = `char-card${isOwned ? ' owned' : ''}`;
 
-    // Build skills preview (read-only)
     const skillsHtml = (c.skills || []).map(s => `
       <div class="skill-item">
         <span class="skill-lvl">L${s.level}</span>
         <span class="skill-val">${s.val > 0 && s.type.includes('Traffic') ? '+'+s.val : s.val > 0 && s.val < 1 ? '+'+s.val.toFixed(3) : s.val}</span>
-        <span class="skill-type">${s.type}</span>
-        ${s.tag !== 'None' ? `<span class="skill-tag">/ ${s.tag}</span>` : ''}
+        <span class="skill-type">${TRANSLATIONS[s.type] || s.type}</span>
+        ${s.tag !== 'None' ? `<span class="skill-tag">/ ${TRANSLATIONS[s.tag] || s.tag}</span>` : ''}
         ${s.req > 0 ? `<span class="skill-req">(req ${s.req})</span>` : ''}
       </div>
     `).join('');
@@ -222,24 +215,24 @@ function renderCharacters() {
     card.innerHTML = `
       <div class="char-card-header">
         <div class="char-card-left">
-          <span class="char-name">${c.name}</span>
-          <span class="char-owned-badge ${isOwned ? 'owned' : 'unowned'}">${isOwned ? 'Owned' : 'Not Owned'}</span>
+          <span class="char-name">${TRANSLATIONS[c.name] || c.name}</span>
+          <span class="char-owned-badge ${isOwned ? 'owned' : 'unowned'}">${isOwned ? 'В наличии' : 'Нет в наличии'}</span>
         </div>
         <span class="char-chevron">▼</span>
       </div>
       <div class="char-card-body">
         <div class="char-controls">
           <div class="char-control-item">
-            <label>Owned</label>
+            <label>В наличии</label>
             <input type="checkbox" data-char-owned="${c.name}" ${isOwned ? 'checked' : ''} />
           </div>
           <div class="char-control-item">
-            <label>Level</label>
+            <label>Уровень</label>
             <input type="number" min="1" max="5" value="${us.level || 1}" data-char-lvl="${c.name}" />
           </div>
         </div>
         <div class="skills-section">
-          <div class="skills-title">Skills</div>
+          <div class="skills-title">Навыки</div>
           <div class="skill-list">${skillsHtml}</div>
         </div>
       </div>
@@ -248,14 +241,12 @@ function renderCharacters() {
     container.appendChild(card);
   });
 
-  // Toggle open/close
   container.querySelectorAll('.char-card-header').forEach(header => {
     header.addEventListener('click', () => {
       header.closest('.char-card').classList.toggle('open');
     });
   });
 
-  // Owned checkbox
   container.querySelectorAll('[data-char-owned]').forEach(cb => {
     cb.addEventListener('change', () => {
       const name = cb.dataset.charOwned;
@@ -265,17 +256,17 @@ function renderCharacters() {
       if (cb.checked) {
         card.classList.add('owned');
         badge.className = 'char-owned-badge owned';
-        badge.textContent = 'Owned';
+        badge.textContent = 'В наличии';
       } else {
         card.classList.remove('owned');
         badge.className = 'char-owned-badge unowned';
-        badge.textContent = 'Not Owned';
+        badge.textContent = 'Нет в наличии';
       }
-      saveUserState(); updateRosterSummary();
+      saveUserState();
+      updateRosterSummary();
     });
   });
 
-  // Level input
   container.querySelectorAll('[data-char-lvl]').forEach(inp => {
     inp.addEventListener('change', () => {
       const name = inp.dataset.charLvl;
@@ -294,12 +285,13 @@ function updateRosterSummary() {
   const ownedChars  = masterData.characters.filter(c => (userState.characters[c.name] || {}).owned).length;
 
   document.getElementById('rosterSummary').innerHTML = `
-    Dishes: <span>${ownedDishes}</span> owned / <span>${maxD}</span> slots<br>
-    Characters: <span>${ownedChars}</span> owned / <span>${maxC}</span> slots<br>
-    Dish combos: <span>${nCr(ownedDishes, Math.min(ownedDishes, maxD))}</span><br>
-    Char combos: <span>${nCr(ownedChars, Math.min(ownedChars, maxC))}</span>
+    Блюда: <span>${ownedDishes}</span> в наличии / <span>${maxD}</span> слотов<br>
+    Персонажи: <span>${ownedChars}</span> в наличии / <span>${maxC}</span> слотов<br>
+    Комбинации блюд: <span>${nCr(ownedDishes, Math.min(ownedDishes, maxD))}</span><br>
+    Комбинации персонажей: <span>${nCr(ownedChars, Math.min(ownedChars, maxC))}</span>
   `;
 }
+
 ['cafesOwned', 'trendCategory', 'trendBonus', 'popularityBonus'].forEach(id => {
   document.getElementById(id).addEventListener('input', () => { saveSettings(); updateRosterSummary(); });
   document.getElementById(id).addEventListener('change', () => { saveSettings(); updateRosterSummary(); });
@@ -314,7 +306,7 @@ function nCr(n, r) {
   return Math.round(result);
 }
 
-// ── OPTIMIZER ──────────────────────────────────────────────────────────────
+// ── OPTIMIZER ─────────────────────────────────────────────────────────────
 document.getElementById('btnRun').addEventListener('click', () => {
   saveSettings();
   updateRosterSummary();
@@ -327,14 +319,12 @@ function runOptimizer() {
   const maxDishes = cafesOwned;
   const maxChars  = cafesOwned * 2;
 
-  // Build trending ingredient set
   const trendingSubItems = trendMatch
     ? new Set(masterData.ingredients
         .filter(r => r.category.toLowerCase() === trendMatch)
         .map(r => r.name.toLowerCase()))
     : new Set();
 
-  // Build owned dish pool from master data + user state
   const ownedDishes = [];
   masterData.dishes.forEach(d => {
     const us = userState.dishes[d.name] || {};
@@ -350,7 +340,6 @@ function runOptimizer() {
     ownedDishes.push({ name: d.name, type: d.type, basePrice: base + (isTrending ? trendBonus : 0), isTrending });
   });
 
-  // Build owned character pool from master data + user state
   const ownedChars = [];
   masterData.characters.forEach(c => {
     const us = userState.characters[c.name] || {};
@@ -362,9 +351,8 @@ function runOptimizer() {
     if (skills.length > 0) ownedChars.push({ name: c.name, skills });
   });
 
-  // Validation
-  if (ownedDishes.length === 0) { showError('No owned dishes. Go to the Dishes tab and mark some as owned.'); return; }
-  if (ownedDishes.length < maxDishes) { showError(`Need at least ${maxDishes} owned dishes for ${cafesOwned} cafe(s). You have ${ownedDishes.length}.`); return; }
+  if (ownedDishes.length === 0) { showError('Нет блюд в наличии. Перейдите на вкладку Блюда и отметьте некоторые как имеющиеся.'); return; }
+  if (ownedDishes.length < maxDishes) { showError(`Нужно как минимум ${maxDishes} блюд для ${cafesOwned} кафе. У вас есть ${ownedDishes.length}.`); return; }
 
   const dishCombos = getCombinations(ownedDishes, maxDishes);
   const charCombos = ownedChars.length > 0
@@ -389,22 +377,23 @@ function runOptimizer() {
         if (skill.tag === 'Any') return maxTagCount;
         return tagCounts[skill.tag] || 0;
       }
+
       function skillActivates(skill) {
         const tc = skill.tag === 'None' ? skill.req : getTagCount(skill);
         return tc >= skill.req;
       }
+
       function appendLog(name, traffic, price, multiplier) {
         const parts = [];
-        if (traffic > 0)    parts.push(`+${traffic.toFixed(2)} Traffic`);
-        if (price > 0)      parts.push(`+${price.toFixed(2)} Price`);
-        if (multiplier > 0) parts.push(`+${(multiplier*100).toFixed(1)}% Price`);
+        if (traffic > 0) parts.push(`+${traffic.toFixed(2)} Трафик`);
+        if (price > 0) parts.push(`+${price.toFixed(2)} Цена`);
+        if (multiplier > 0) parts.push(`+${(multiplier*100).toFixed(1)}% Цена`);
         if (!parts.length) return;
         const idx = tempLog.findIndex(l => l.name === name);
         if (idx >= 0) tempLog[idx].buffs += ' & ' + parts.join(' & ');
         else tempLog.push({ name, buffs: parts.join(' & ') });
       }
 
-      // Pass 1: Flat skills
       testTeam.forEach(c => {
         let tt = 0, tp = 0, activated = false;
         c.skills.forEach(skill => {
@@ -412,12 +401,11 @@ function runOptimizer() {
           if (!skillActivates(skill)) return;
           activated = true;
           if (skill.type === 'Traffic_Flat') tt += skill.val;
-          if (skill.type === 'Price_Flat')   tp += skill.val;
+          if (skill.type === 'Price_Flat') tp += skill.val;
         });
         if (activated) { currentTraffic += tt; currentPriceBuff += tp; appendLog(c.name, tt, tp, 0); }
       });
 
-      // Pass 2: Traffic_Multiply (against post-flat traffic)
       testTeam.forEach(c => {
         let tt = 0, activated = false;
         c.skills.forEach(skill => {
@@ -429,7 +417,6 @@ function runOptimizer() {
         if (activated) { currentTraffic += tt; appendLog(c.name, tt, 0, 0); }
       });
 
-      // Pass 3: Price_Multiply (multiplies final dish price)
       testTeam.forEach(c => {
         let pm = 0, activated = false;
         c.skills.forEach(skill => {
@@ -448,15 +435,18 @@ function runOptimizer() {
       if (totalIncome > bestScore) {
         bestScore = totalIncome;
         bestData = {
-          dishes: testMenu, traffic: currentTraffic,
-          priceBuff: currentPriceBuff, priceMultiplier: currentPriceMultiplier,
-          income: totalIncome, log: tempLog
+          dishes: testMenu,
+          traffic: currentTraffic,
+          priceBuff: currentPriceBuff,
+          priceMultiplier: currentPriceMultiplier,
+          income: totalIncome,
+          log: tempLog
         };
       }
     });
   });
 
-  if (!bestData) { showError('No valid roster found.'); return; }
+  if (!bestData) { showError('Не найдено подходящего состава.'); return; }
   showResults(bestData);
 }
 
@@ -476,74 +466,79 @@ function showError(msg) {
     <div class="results-placeholder">
       <div class="placeholder-icon">⚠️</div>
       <p style="color:var(--red)">${msg}</p>
-    </div>`;
+    </div>
+  `;
 }
 
 function showResults(data) {
   const { trendCategory, trendBonus } = settings;
   const trafficRatio = data.traffic / 100;
+  const fons = TRANSLATIONS['Fons'] || 'Fons';
 
   const trendHtml = trendCategory
-    ? `<div style="font-family:var(--mono);font-size:0.78rem;color:var(--accent);margin-bottom:0.5rem">🔥 Trend: ${trendCategory} (+${trendBonus.toFixed(2)} Fons)</div>`
+    ? `<div style="font-family:var(--mono);font-size:0.78rem;color:var(--accent);margin-bottom:0.5rem">🔥 Тренд: ${TRANSLATIONS[trendCategory] || trendCategory} (+${trendBonus.toFixed(2)} ${fons})</div>`
     : '';
 
   const statsHtml = `
     <div class="result-stat-row">
       <div class="result-stat">
-        <div class="result-stat-label">Traffic</div>
+        <div class="result-stat-label">Трафик</div>
         <div class="result-stat-value">${data.traffic.toFixed(2)}</div>
       </div>
       <div class="result-stat">
-        <div class="result-stat-label">Price Buff</div>
+        <div class="result-stat-label">Бонус цены</div>
         <div class="result-stat-value">+${data.priceBuff.toFixed(2)}</div>
       </div>
       <div class="result-stat">
-        <div class="result-stat-label">Price Mult</div>
+        <div class="result-stat-label">Множитель цены</div>
         <div class="result-stat-value">×${data.priceMultiplier.toFixed(3)}</div>
       </div>
       <div class="result-stat" style="border-color:var(--accent);background:rgba(245,166,35,0.06)">
-        <div class="result-stat-label">Total Income (Displayed In-game)</div>
-        <div class="result-stat-value">${data.income.toFixed(2)} <span style="font-size:0.7rem;color:var(--text3)">Fons/hr</span></div>
+        <div class="result-stat-label">Общий доход (как в игре)</div>
+        <div class="result-stat-value">${data.income.toFixed(2)} <span style="font-size:0.7rem;color:var(--text3)">${fons}/час</span></div>
       </div>
       <div class="result-stat" style="border-color:var(--accent);background:rgba(245,166,35,0.06)">
-        <div class="result-stat-label">Total Income (Actual)</div>
-        <div class="result-stat-value">${(data.income * (1 + settings.popularityBonus)).toFixed(2)} <span style="font-size:0.7rem;color:var(--text3)">Fons/hr</span></div>
+        <div class="result-stat-label">Общий доход (реальный)</div>
+        <div class="result-stat-value">${(data.income * (1 + settings.popularityBonus)).toFixed(2)} <span style="font-size:0.7rem;color:var(--text3)">${fons}/час</span></div>
       </div>
-    </div>`;
+    </div>
+  `;
 
   const dishesHtml = `
-    <div class="result-section-title">🍽️ Best Menu</div>
+    <div class="result-section-title">🍽️ Лучшее меню</div>
     <div class="result-menu">
       ${data.dishes.map(d => {
         const finalPrice = (d.basePrice + data.priceBuff) * data.priceMultiplier;
         return `
-          <div class="result-dish">
-            <div class="result-dish-name">
-              ${d.isTrending ? '<span class="trend-badge">🔥</span>' : ''}
-              ${d.name}
-              <span style="font-size:0.7rem;color:var(--text3);font-family:var(--mono)">${d.type}</span>
-            </div>
-            <div style="display:flex;gap:1rem;font-family:var(--mono);font-size:0.8rem">
-              <span class="result-dish-price">${finalPrice.toFixed(2)} Fons</span>
-              <span class="result-dish-income">${(finalPrice * trafficRatio).toFixed(2)}/hr</span>
-            </div>
-          </div>`;
+        <div class="result-dish">
+          <div class="result-dish-name">
+            ${d.isTrending ? '<span class="trend-badge">🔥</span>' : ''}
+            ${TRANSLATIONS[d.name] || d.name}
+            <span style="font-size:0.7rem;color:var(--text3);font-family:var(--mono)">${TRANSLATIONS[d.type] || d.type}</span>
+          </div>
+          <div style="display:flex;gap:1rem;font-family:var(--mono);font-size:0.8rem">
+            <span class="result-dish-price">${finalPrice.toFixed(2)} ${fons}</span>
+            <span class="result-dish-income">${(finalPrice * trafficRatio).toFixed(2)}/час</span>
+          </div>
+        </div>`;
       }).join('')}
-    </div>`;
+    </div>
+  `;
 
   const logHtml = data.log.length > 0 ? `
-    <div class="result-section-title" style="margin-top:1rem">👥 Character Buffs</div>
+    <div class="result-section-title" style="margin-top:1rem">👥 Бонусы персонажей</div>
     <div class="result-log">
       ${data.log.map(e => `
         <div class="log-entry">
-          <span class="log-name">${e.name}</span>
+          <span class="log-name">${TRANSLATIONS[e.name] || e.name}</span>
           <span class="log-buffs">${e.buffs}</span>
-        </div>`).join('')}
-    </div>` : '';
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
 
-  document.getElementById('resultsArea').innerHTML = `
-    <div class="results-output">${trendHtml}${statsHtml}${dishesHtml}${logHtml}</div>`;
+  document.getElementById('resultsArea').innerHTML = `<div class="results-output">${trendHtml}${statsHtml}${dishesHtml}${logHtml}</div>`;
 }
 
-// ── START ──────────────────────────────────────────────────────────────────
+// ── START ─────────────────────────────────────────────────────────────────
 init();
