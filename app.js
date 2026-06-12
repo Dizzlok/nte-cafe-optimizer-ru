@@ -1,544 +1,569 @@
+// ── CONFIGURATION ──────────────────────────────────────────────────────────
+const EXTERNAL_DATA_URL = 'https://raw.githubusercontent.com/Kuro-121/NTE-CafeOptimizer/main/data.js';
+
 // ── STORAGE KEYS ───────────────────────────────────────────────────────────
-const DATA_KEY     = 'cafe_origen_data_v2';
+const DATA_KEY = 'cafe_origen_data_v2';
 const SETTINGS_KEY = 'cafe_origen_settings';
+const LAST_FETCH_KEY = 'cafe_origen_last_data_fetch';
+
 let masterData = { ingredients: [], dishes: [], characters: [] };
 let userState = { dishes: {}, characters: {} };
 let settings = { cafesOwned: 5, trendCategory: '', trendBonus: 1.0, popularityBonus: 0 };
 
-// ── LOAD ───────────────────────────────────────────────────────────────────
-function init() {
-  masterData = MASTER_DATA;
-  loadSettings();
-  loadUserState();
-  seedUserState();
-  populateTrendDropdown();
-  renderDishes();
-  renderCharacters();
-  updateRosterSummary();
-  applySettings();
+// ── DATA LOADER (через fetch) ──────────────────────────────────────────────
+async function loadMasterData() {
+    const now = Date.now();
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+    let lastFetch = localStorage.getItem(LAST_FETCH_KEY);
+    let cacheBuster = '';
+
+    if (!lastFetch || (now - parseInt(lastFetch)) > ONE_DAY_MS) {
+        cacheBuster = `?v=${now}`;
+        localStorage.setItem(LAST_FETCH_KEY, now.toString());
+    }
+
+    try {
+        const response = await fetch(EXTERNAL_DATA_URL + cacheBuster);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const scriptText = await response.text();
+        
+        // Создаем функцию из текста скрипта и выполняем
+        const getData = new Function(scriptText + '; return MASTER_DATA;');
+        const data = getData();
+        
+        if (!data || !data.ingredients) {
+            throw new Error('MASTER_DATA не содержит ожидаемых данных');
+        }
+        
+        return data;
+    } catch (error) {
+        throw new Error(`Не удалось загрузить данные: ${error.message}`);
+    }
 }
 
+// ── INITIALIZATION ─────────────────────────────────────────────────────────
+async function init() {
+    try {
+        masterData = await loadMasterData();
+        console.log('Данные успешно загружены:', masterData);
+    } catch (error) {
+        console.error("Критическая ошибка инициализации:", error);
+        const resultsArea = document.getElementById('resultsArea');
+        if (resultsArea) {
+            resultsArea.innerHTML = `
+                <div class="results-placeholder">
+                    <div class="placeholder-icon">⚠️</div>
+                    <p style="color:var(--red)">${error.message}</p>
+                    <p style="font-size:0.8rem; color:var(--text3); margin-top:0.5rem;">
+                        Попробуйте обновить страницу или проверьте подключение к интернету.
+                    </p>
+                </div>
+            `;
+        }
+        return;
+    }
+
+    loadSettings();
+    loadUserState();
+    seedUserState();
+    populateTrendDropdown();
+    renderDishes();
+    renderCharacters();
+    updateRosterSummary();
+    applySettings();
+}
+
+// ── STATE MANAGEMENT ───────────────────────────────────────────────────────
 function seedUserState() {
-  masterData.dishes.forEach(d => {
-    if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
-  });
-  masterData.characters.forEach(c => {
-    if (!userState.characters[c.name]) userState.characters[c.name] = { owned: false, level: 1 };
-  });
-  saveUserState();
+    masterData.dishes.forEach(d => {
+        if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
+    });
+    masterData.characters.forEach(c => {
+        if (!userState.characters[c.name]) userState.characters[c.name] = { owned: false, level: 1 };
+    });
+    saveUserState();
 }
 
 function loadUserState() {
-  try {
-    const saved = localStorage.getItem(DATA_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed.dishes) || Array.isArray(parsed.characters)) {
-        console.warn('Corrupt userState detected in localStorage, resetting.');
-        localStorage.removeItem(DATA_KEY);
-        return;
-      }
-      userState.dishes     = (parsed.dishes     && typeof parsed.dishes === 'object')     ? parsed.dishes     : {};
-      userState.characters = (parsed.characters && typeof parsed.characters === 'object') ? parsed.characters : {};
+    try {
+        const saved = localStorage.getItem(DATA_KEY);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed.dishes) || Array.isArray(parsed.characters)) {
+                console.warn('Corrupt userState detected in localStorage, resetting.');
+                localStorage.removeItem(DATA_KEY);
+                return;
+            }
+            userState.dishes = (parsed.dishes && typeof parsed.dishes === 'object') ? parsed.dishes : {};
+            userState.characters = (parsed.characters && typeof parsed.characters === 'object') ? parsed.characters : {};
+        }
+    } catch (e) {
+        console.warn('Could not load user state:', e);
     }
-  } catch (e) {
-    console.warn('Could not load user state:', e);
-  }
 }
 
 function saveUserState() {
-  try {
-    localStorage.setItem(DATA_KEY, JSON.stringify(userState));
-  } catch (e) {
-    console.warn('Could not save user state:', e);
-  }
+    try {
+        localStorage.setItem(DATA_KEY, JSON.stringify(userState));
+    } catch (e) {
+        console.warn('Could not save user state:', e);
+    }
 }
 
 function loadSettings() {
-  try {
-    const saved = localStorage.getItem(SETTINGS_KEY);
-    if (saved) settings = { ...settings, ...JSON.parse(saved) };
-  } catch {}
+    try {
+        const saved = localStorage.getItem(SETTINGS_KEY);
+        if (saved) settings = { ...settings, ...JSON.parse(saved) };
+    } catch {}
 }
 
 function saveSettings() {
-  settings.cafesOwned     = parseInt(document.getElementById('cafesOwned').value) || 1;
-  settings.trendCategory  = document.getElementById('trendCategory').value;
-  settings.trendBonus     = parseFloat(document.getElementById('trendBonus').value) || 0;
-  settings.popularityBonus = parseFloat(document.getElementById('popularityBonus').value) || 0;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    settings.cafesOwned = parseInt(document.getElementById('cafesOwned').value) || 1;
+    settings.trendCategory = document.getElementById('trendCategory').value;
+    settings.trendBonus = parseFloat(document.getElementById('trendBonus').value) || 0;
+    settings.popularityBonus = parseFloat(document.getElementById('popularityBonus').value) || 0;
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 }
 
 function applySettings() {
-  document.getElementById('cafesOwned').value     = settings.cafesOwned;
-  document.getElementById('trendCategory').value  = settings.trendCategory;
-  document.getElementById('trendBonus').value     = settings.trendBonus;
-  document.getElementById('popularityBonus').value = settings.popularityBonus;
+    document.getElementById('cafesOwned').value = settings.cafesOwned;
+    document.getElementById('trendCategory').value = settings.trendCategory;
+    document.getElementById('trendBonus').value = settings.trendBonus;
+    document.getElementById('popularityBonus').value = settings.popularityBonus;
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-  });
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
 });
 
-// ─ TREND DROPDOWN ─────────────────────────────────────────────────────────
+// ── TREND DROPDOWN ────────────────────────────────────────────────────────
 function populateTrendDropdown() {
-  const sel = document.getElementById('trendCategory');
-  const dishTypes = [...new Set(masterData.dishes.map(d => d.type))].sort();
-  const ingNames  = masterData.ingredients.map(i => i.name).sort();
-  const ingCats   = [...new Set(masterData.ingredients.map(i => i.category).filter(Boolean))].sort();
-
-  const addGroup = (label, items) => {
-    if (!items.length) return;
-    const grp = document.createElement('optgroup');
-    grp.label = TRANSLATIONS[label] || label; // <-- перевод заголовка группы
-    items.forEach(item => {
-      const opt = document.createElement('option');
-      opt.value = item;
-      opt.textContent = TRANSLATIONS[item] || item;
-      if (item === settings.trendCategory) opt.selected = true;
-      grp.appendChild(opt);
-    });
-    sel.appendChild(grp);
-  };
-
-  addGroup('Dish Types', dishTypes);
-  addGroup('Categories', ingCats);
-  addGroup('Ingredients', ingNames);
+    const sel = document.getElementById('trendCategory');
+    sel.innerHTML = '<option value="">— Нет —</option>';
+    
+    const dishTypes = [...new Set(masterData.dishes.map(d => d.type))].sort();
+    const ingNames = masterData.ingredients.map(i => i.name).sort();
+    const ingCats = [...new Set(masterData.ingredients.map(i => i.category).filter(Boolean))].sort();
+    
+    const addGroup = (label, items) => {
+        if (!items.length) return;
+        const grp = document.createElement('optgroup');
+        grp.label = TRANSLATIONS[label] || label;
+        items.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item;
+            opt.textContent = TRANSLATIONS[item] || item;
+            if (item === settings.trendCategory) opt.selected = true;
+            grp.appendChild(opt);
+        });
+        sel.appendChild(grp);
+    };
+    
+    addGroup('Dish Types', dishTypes);
+    addGroup('Categories', ingCats);
+    addGroup('Ingredients', ingNames);
 }
 
-// ── DISHES ─────────────────────────────────────────────────────────────────
+// ── DISHES ────────────────────────────────────────────────────────────────
 function renderDishes() {
-  const tbody = document.getElementById('dishTableBody');
-  tbody.innerHTML = '';
-
-  masterData.dishes.forEach(d => {
-    if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
-    const us = userState.dishes[d.name];
-    const tr = document.createElement('tr');
-
-    tr.innerHTML = `
-      <td style="text-align:center">
-        <input type="checkbox" data-dish-owned="${d.name}" ${us.owned ? 'checked' : ''} />
-      </td>
-      <td>
-        <select data-dish-lvl="${d.name}" style="width:70px">
-          <option value="1" ${us.level == 1 ? 'selected' : ''}>L1</option>
-          <option value="2" ${us.level == 2 ? 'selected' : ''}>L2</option>
-        </select>
-      </td>
-      <td class="name-col">${TRANSLATIONS[d.name] || d.name}</td>
-      <td class="type-col">${TRANSLATIONS[d.type] || d.type}</td>
-      <td style="font-size:0.75rem;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text3)">
-        ${d.ingredients.split(',').map(ing => TRANSLATIONS[ing.trim()] || ing.trim()).join(', ')}
-      </td>
-      <td>${d.priceL1}</td>
-      <td>${d.priceL2}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  tbody.querySelectorAll('[data-dish-owned]').forEach(cb => {
-    cb.addEventListener('change', () => {
-      const name = cb.dataset.dishOwned;
-      userState.dishes[name].owned = cb.checked;
-      saveUserState();
-      updateRosterSummary();
-    });
-  });
-
-  tbody.querySelectorAll('[data-dish-lvl]').forEach(sel => {
-    sel.addEventListener('change', () => {
-      const name = sel.dataset.dishLvl;
-      userState.dishes[name].level = parseInt(sel.value);
-      saveUserState();
-    });
-  });
-
-  const btnOwned = document.getElementById('btnToggleAllOwned');
-  const allOwned = masterData.dishes.every(d => userState.dishes[d.name]?.owned);
-  btnOwned.textContent = allOwned ? 'Сбросить все' : 'Выбрать все';
-  btnOwned.classList.toggle('active', allOwned);
-  btnOwned.onclick = () => {
-    const nowAllOwned = masterData.dishes.every(d => userState.dishes[d.name]?.owned);
+    const tbody = document.getElementById('dishTableBody');
+    tbody.innerHTML = '';
+    
     masterData.dishes.forEach(d => {
-      if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
-      userState.dishes[d.name].owned = !nowAllOwned;
+        if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
+        const us = userState.dishes[d.name];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="text-align:center">
+                <input type="checkbox" data-dish-owned="${d.name}" ${us.owned ? 'checked' : ''} />
+            </td>
+            <td>
+                <select data-dish-lvl="${d.name}" style="width:70px">
+                    <option value="1" ${us.level == 1 ? 'selected' : ''}>L1</option>
+                    <option value="2" ${us.level == 2 ? 'selected' : ''}>L2</option>
+                </select>
+            </td>
+            <td class="name-col">${TRANSLATIONS[d.name] || d.name}</td>
+            <td class="type-col">${TRANSLATIONS[d.type] || d.type}</td>
+            <td style="font-size:0.75rem;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text3)">
+                ${d.ingredients.split(',').map(ing => TRANSLATIONS[ing.trim()] || ing.trim()).join(', ')}
+            </td>
+            <td>${d.priceL1}</td>
+            <td>${d.priceL2}</td>
+        `;
+        tbody.appendChild(tr);
     });
-    saveUserState();
-    updateRosterSummary();
-    renderDishes();
-  };
 
-  const btnLevel = document.getElementById('btnToggleAllLevel');
-  const allL2 = masterData.dishes.every(d => userState.dishes[d.name]?.level === 2);
-  btnLevel.textContent = allL2 ? 'Установить все L1' : 'Установить все L2';
-  btnLevel.classList.toggle('active', allL2);
-  btnLevel.onclick = () => {
-    const nowAllL2 = masterData.dishes.every(d => userState.dishes[d.name]?.level === 2);
-    masterData.dishes.forEach(d => {
-      if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
-      userState.dishes[d.name].level = nowAllL2 ? 1 : 2;
+    tbody.querySelectorAll('[data-dish-owned]').forEach(cb => {
+        cb.addEventListener('change', () => {
+            const name = cb.dataset.dishOwned;
+            userState.dishes[name].owned = cb.checked;
+            saveUserState();
+            updateRosterSummary();
+        });
     });
-    saveUserState();
-    renderDishes();
-  };
+
+    tbody.querySelectorAll('[data-dish-lvl]').forEach(sel => {
+        sel.addEventListener('change', () => {
+            const name = sel.dataset.dishLvl;
+            userState.dishes[name].level = parseInt(sel.value);
+            saveUserState();
+        });
+    });
+
+    const btnOwned = document.getElementById('btnToggleAllOwned');
+    if (btnOwned) {
+        const allOwned = masterData.dishes.every(d => userState.dishes[d.name]?.owned);
+        btnOwned.textContent = allOwned ? 'Сбросить все' : 'Выбрать все';
+        btnOwned.classList.toggle('active', allOwned);
+        btnOwned.onclick = () => {
+            const nowAllOwned = masterData.dishes.every(d => userState.dishes[d.name]?.owned);
+            masterData.dishes.forEach(d => {
+                if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
+                userState.dishes[d.name].owned = !nowAllOwned;
+            });
+            saveUserState();
+            updateRosterSummary();
+            renderDishes();
+        };
+    }
+
+    const btnLevel = document.getElementById('btnToggleAllLevel');
+    if (btnLevel) {
+        const allL2 = masterData.dishes.every(d => userState.dishes[d.name]?.level === 2);
+        btnLevel.textContent = allL2 ? 'Установить все L1' : 'Установить все L2';
+        btnLevel.classList.toggle('active', allL2);
+        btnLevel.onclick = () => {
+            const nowAllL2 = masterData.dishes.every(d => userState.dishes[d.name]?.level === 2);
+            masterData.dishes.forEach(d => {
+                if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
+                userState.dishes[d.name].level = nowAllL2 ? 1 : 2;
+            });
+            saveUserState();
+            renderDishes();
+        };
+    }
 }
 
-// ── CHARACTERS ─────────────────────────────────────────────────────────────
+// ── CHARACTERS ────────────────────────────────────────────────────────────
 function renderCharacters() {
-  const container = document.getElementById('charCards');
-  container.innerHTML = '';
+    const container = document.getElementById('charCards');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    masterData.characters.forEach(c => {
+        if (!userState.characters[c.name]) userState.characters[c.name] = { owned: false, level: 1 };
+        const us = userState.characters[c.name];
+        const isOwned = us.owned;
+        const card = document.createElement('div');
+        card.className = `char-card${isOwned ? ' owned' : ''}`;
+        
+        const skillsHtml = (c.skills || []).map(s => `
+            <div class="skill-item">
+                <span class="skill-lvl">L${s.level}</span>
+                <span class="skill-val">${s.val > 0 && s.type.includes('Traffic') ? '+'+s.val : s.val > 0 && s.val < 1 ? '+'+s.val.toFixed(3) : s.val}</span>
+                <span class="skill-type">${TRANSLATIONS[s.type] || s.type}</span>
+                ${s.tag !== 'None' ? `<span class="skill-tag">/ ${TRANSLATIONS[s.tag] || s.tag}</span>` : ''}
+                ${s.req > 0 ? `<span class="skill-req">(req ${s.req})</span>` : ''}
+            </div>
+        `).join('');
 
-  masterData.characters.forEach(c => {
-    if (!userState.characters[c.name]) userState.characters[c.name] = { owned: false, level: 1 };
-    const us = userState.characters[c.name];
-    const isOwned = us.owned;
-    const card = document.createElement('div');
-    card.className = `char-card${isOwned ? ' owned' : ''}`;
-
-    const skillsHtml = (c.skills || []).map(s => `
-      <div class="skill-item">
-        <span class="skill-lvl">L${s.level}</span>
-        <span class="skill-val">${s.val > 0 && s.type.includes('Traffic') ? '+'+s.val : s.val > 0 && s.val < 1 ? '+'+s.val.toFixed(3) : s.val}</span>
-        <span class="skill-type">${TRANSLATIONS[s.type] || s.type}</span>
-        ${s.tag !== 'None' ? `<span class="skill-tag">/ ${TRANSLATIONS[s.tag] || s.tag}</span>` : ''}
-        ${s.req > 0 ? `<span class="skill-req">(req ${s.req})</span>` : ''}
-      </div>
-    `).join('');
-
-    card.innerHTML = `
-      <div class="char-card-header">
-        <div class="char-card-left">
-          <span class="char-name">${TRANSLATIONS[c.name] || c.name}</span>
-          <span class="char-owned-badge ${isOwned ? 'owned' : 'unowned'}">${isOwned ? 'В наличии' : 'Нет в наличии'}</span>
-        </div>
-        <span class="char-chevron">▼</span>
-      </div>
-      <div class="char-card-body">
-        <div class="char-controls">
-          <div class="char-control-item">
-            <label>В наличии</label>
-            <input type="checkbox" data-char-owned="${c.name}" ${isOwned ? 'checked' : ''} />
-          </div>
-          <div class="char-control-item">
-            <label>Уровень</label>
-            <input type="number" min="1" max="5" value="${us.level || 1}" data-char-lvl="${c.name}" />
-          </div>
-        </div>
-        <div class="skills-section">
-          <div class="skills-title">Навыки</div>
-          <div class="skill-list">${skillsHtml}</div>
-        </div>
-      </div>
-    `;
-
-    container.appendChild(card);
-  });
-
-  container.querySelectorAll('.char-card-header').forEach(header => {
-    header.addEventListener('click', () => {
-      header.closest('.char-card').classList.toggle('open');
+        card.innerHTML = `
+            <div class="char-card-header">
+                <div class="char-card-left">
+                    <span class="char-name">${TRANSLATIONS[c.name] || c.name}</span>
+                    <span class="char-owned-badge ${isOwned ? 'owned' : 'unowned'}">${isOwned ? 'В наличии' : 'Нет в наличии'}</span>
+                </div>
+                <span class="char-chevron">▼</span>
+            </div>
+            <div class="char-card-body">
+                <div class="char-controls">
+                    <div class="char-control-item">
+                        <label>В наличии</label>
+                        <input type="checkbox" data-char-owned="${c.name}" ${isOwned ? 'checked' : ''} />
+                    </div>
+                    <div class="char-control-item">
+                        <label>Уровень</label>
+                        <input type="number" min="1" max="5" value="${us.level || 1}" data-char-lvl="${c.name}" />
+                    </div>
+                </div>
+                <div class="skills-section">
+                    <div class="skills-title">Навыки</div>
+                    <div class="skill-list">${skillsHtml}</div>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
     });
-  });
 
-  container.querySelectorAll('[data-char-owned]').forEach(cb => {
-    cb.addEventListener('change', () => {
-      const name = cb.dataset.charOwned;
-      userState.characters[name].owned = cb.checked;
-      const card = cb.closest('.char-card');
-      const badge = card.querySelector('.char-owned-badge');
-      if (cb.checked) {
-        card.classList.add('owned');
-        badge.className = 'char-owned-badge owned';
-        badge.textContent = 'В наличии';
-      } else {
-        card.classList.remove('owned');
-        badge.className = 'char-owned-badge unowned';
-        badge.textContent = 'Нет в наличии';
-      }
-      saveUserState();
-      updateRosterSummary();
+    container.querySelectorAll('.char-card-header').forEach(header => {
+        header.addEventListener('click', () => {
+            header.closest('.char-card').classList.toggle('open');
+        });
     });
-  });
 
-  container.querySelectorAll('[data-char-lvl]').forEach(inp => {
-    inp.addEventListener('change', () => {
-      const name = inp.dataset.charLvl;
-      userState.characters[name].level = Math.max(1, Math.min(5, parseInt(inp.value) || 1));
-      inp.value = userState.characters[name].level;
-      saveUserState();
+    container.querySelectorAll('[data-char-owned]').forEach(cb => {
+        cb.addEventListener('change', () => {
+            const name = cb.dataset.charOwned;
+            userState.characters[name].owned = cb.checked;
+            const card = cb.closest('.char-card');
+            const badge = card.querySelector('.char-owned-badge');
+            if (cb.checked) {
+                card.classList.add('owned');
+                badge.className = 'char-owned-badge owned';
+                badge.textContent = 'В наличии';
+            } else {
+                card.classList.remove('owned');
+                badge.className = 'char-owned-badge unowned';
+                badge.textContent = 'Нет в наличии';
+            }
+            saveUserState();
+            updateRosterSummary();
+        });
     });
-  });
+
+    container.querySelectorAll('[data-char-lvl]').forEach(inp => {
+        inp.addEventListener('change', () => {
+            const name = inp.dataset.charLvl;
+            userState.characters[name].level = Math.max(1, Math.min(5, parseInt(inp.value) || 1));
+            inp.value = userState.characters[name].level;
+            saveUserState();
+        });
+    });
 }
 
-// ── ROSTER SUMMARY ─────────────────────────────────────────────────────────
+// ── ROSTER SUMMARY ────────────────────────────────────────────────────────
 function updateRosterSummary() {
-  const cafes = parseInt(document.getElementById('cafesOwned').value) || 1;
-  const maxD = cafes, maxC = cafes * 2;
-  const ownedDishes = masterData.dishes.filter(d => (userState.dishes[d.name] || {}).owned).length;
-  const ownedChars  = masterData.characters.filter(c => (userState.characters[c.name] || {}).owned).length;
-
-  document.getElementById('rosterSummary').innerHTML = `
-    Блюда: <span>${ownedDishes}</span> в наличии / <span>${maxD}</span> слотов<br>
-    Персонажи: <span>${ownedChars}</span> в наличии / <span>${maxC}</span> слотов<br>
-    Комбинации блюд: <span>${nCr(ownedDishes, Math.min(ownedDishes, maxD))}</span><br>
-    Комбинации персонажей: <span>${nCr(ownedChars, Math.min(ownedChars, maxC))}</span>
-  `;
+    const cafes = parseInt(document.getElementById('cafesOwned').value) || 1;
+    const maxD = cafes, maxC = cafes * 2;
+    const ownedDishes = masterData.dishes.filter(d => (userState.dishes[d.name] || {}).owned).length;
+    const ownedChars = masterData.characters.filter(c => (userState.characters[c.name] || {}).owned).length;
+    
+    const summaryEl = document.getElementById('rosterSummary');
+    if (summaryEl) {
+        summaryEl.innerHTML = `Блюда: <span>${ownedDishes}</span> в наличии / <span>${maxD}</span> слотов<br>Персонажи: <span>${ownedChars}</span> в наличии / <span>${maxC}</span> слотов<br>Комбинации блюд: <span>${nCr(ownedDishes, Math.min(ownedDishes, maxD))}</span><br>Комбинации персонажей: <span>${nCr(ownedChars, Math.min(ownedChars, maxC))}</span>`;
+    }
 }
 
 ['cafesOwned', 'trendCategory', 'trendBonus', 'popularityBonus'].forEach(id => {
-  document.getElementById(id).addEventListener('input', () => { saveSettings(); updateRosterSummary(); });
-  document.getElementById(id).addEventListener('change', () => { saveSettings(); updateRosterSummary(); });
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('input', () => { saveSettings(); updateRosterSummary(); });
+        el.addEventListener('change', () => { saveSettings(); updateRosterSummary(); });
+    }
 });
 
 function nCr(n, r) {
-  if (r > n || r < 0) return 0;
-  if (r === 0 || r === n) return 1;
-  r = Math.min(r, n - r);
-  let result = 1;
-  for (let i = 0; i < r; i++) result = result * (n - i) / (i + 1);
-  return Math.round(result);
+    if (r > n || r < 0) return 0;
+    if (r === 0 || r === n) return 1;
+    r = Math.min(r, n - r);
+    let result = 1;
+    for (let i = 0; i < r; i++) result = result * (n - i) / (i + 1);
+    return Math.round(result);
 }
 
 // ── OPTIMIZER ─────────────────────────────────────────────────────────────
-document.getElementById('btnRun').addEventListener('click', () => {
-  saveSettings();
-  updateRosterSummary();
-  runOptimizer();
+document.getElementById('btnRun')?.addEventListener('click', () => {
+    saveSettings();
+    updateRosterSummary();
+    runOptimizer();
 });
 
 function runOptimizer() {
-  const { cafesOwned, trendCategory, trendBonus } = settings;
-  const trendMatch = trendCategory.toLowerCase();
-  const maxDishes = cafesOwned;
-  const maxChars  = cafesOwned * 2;
+    const { cafesOwned, trendCategory, trendBonus } = settings;
+    const trendMatch = trendCategory.toLowerCase();
+    const maxDishes = cafesOwned;
+    const maxChars = cafesOwned * 2;
+    
+    const trendingSubItems = trendMatch
+        ? new Set(masterData.ingredients
+            .filter(r => r.category.toLowerCase() === trendMatch)
+            .map(r => r.name.toLowerCase()))
+        : new Set();
 
-  const trendingSubItems = trendMatch
-    ? new Set(masterData.ingredients
-        .filter(r => r.category.toLowerCase() === trendMatch)
-        .map(r => r.name.toLowerCase()))
-    : new Set();
-
-  const ownedDishes = [];
-  masterData.dishes.forEach(d => {
-    const us = userState.dishes[d.name] || {};
-    if (!us.owned) return;
-    const lvl = us.level || 1;
-    const base = (lvl == 2) ? d.priceL2 : d.priceL1;
-    const ingredients = d.ingredients.toLowerCase();
-    const typeMatch = trendMatch && d.type.toLowerCase().includes(trendMatch);
-    let subMatch = false;
-    for (const sub of trendingSubItems) { if (ingredients.includes(sub)) { subMatch = true; break; } }
-    const ingMatch = trendMatch && (ingredients.includes(trendMatch) || subMatch);
-    const isTrending = typeMatch || ingMatch;
-    ownedDishes.push({ name: d.name, type: d.type, basePrice: base + (isTrending ? trendBonus : 0), isTrending });
-  });
-
-  const ownedChars = [];
-  masterData.characters.forEach(c => {
-    const us = userState.characters[c.name] || {};
-    if (!us.owned) return;
-    const charLvl = us.level || 1;
-    const skills = (c.skills || [])
-      .filter(s => charLvl >= (s.level || 1) && s.val > 0)
-      .map(s => ({ val: s.val, req: s.req || 0, type: s.type, tag: s.tag || 'None' }));
-    if (skills.length > 0) ownedChars.push({ name: c.name, skills });
-  });
-
-  if (ownedDishes.length === 0) { showError('Нет блюд в наличии. Перейдите на вкладку Блюда и отметьте некоторые как имеющиеся.'); return; }
-  if (ownedDishes.length < maxDishes) { showError(`Нужно как минимум ${maxDishes} блюд для ${cafesOwned} кафе. У вас есть ${ownedDishes.length}.`); return; }
-
-  const dishCombos = getCombinations(ownedDishes, maxDishes);
-  const charCombos = ownedChars.length > 0
-    ? getCombinations(ownedChars, Math.min(ownedChars.length, maxChars))
-    : [[]];
-
-  let bestScore = 0, bestData = null;
-
-  dishCombos.forEach(testMenu => {
-    const tagCounts = {};
-    testMenu.forEach(d => { tagCounts[d.type] = (tagCounts[d.type] || 0) + 1; });
-    const maxTagCount = Math.max(...Object.values(tagCounts), 0);
-
-    charCombos.forEach(testTeam => {
-      let currentTraffic = 2400;
-      let currentPriceBuff = 0;
-      let currentPriceMultiplier = 1.0;
-      const tempLog = [];
-
-      function getTagCount(skill) {
-        if (skill.tag === 'None') return 0;
-        if (skill.tag === 'Any') return maxTagCount;
-        return tagCounts[skill.tag] || 0;
-      }
-
-      function skillActivates(skill) {
-        const tc = skill.tag === 'None' ? skill.req : getTagCount(skill);
-        return tc >= skill.req;
-      }
-
-      function appendLog(name, traffic, price, multiplier) {
-        const parts = [];
-        if (traffic > 0) parts.push(`+${traffic.toFixed(2)} Трафик`);
-        if (price > 0) parts.push(`+${price.toFixed(2)} Цена`);
-        if (multiplier > 0) parts.push(`+${(multiplier*100).toFixed(1)}% Цена`);
-        if (!parts.length) return;
-        const idx = tempLog.findIndex(l => l.name === name);
-        if (idx >= 0) tempLog[idx].buffs += ' & ' + parts.join(' & ');
-        else tempLog.push({ name, buffs: parts.join(' & ') });
-      }
-
-      testTeam.forEach(c => {
-        let tt = 0, tp = 0, activated = false;
-        c.skills.forEach(skill => {
-          if (skill.type === 'Traffic_Multiply' || skill.type === 'Price_Multiply') return;
-          if (!skillActivates(skill)) return;
-          activated = true;
-          if (skill.type === 'Traffic_Flat') tt += skill.val;
-          if (skill.type === 'Price_Flat') tp += skill.val;
-        });
-        if (activated) { currentTraffic += tt; currentPriceBuff += tp; appendLog(c.name, tt, tp, 0); }
-      });
-
-      testTeam.forEach(c => {
-        let tt = 0, activated = false;
-        c.skills.forEach(skill => {
-          if (skill.type !== 'Traffic_Multiply') return;
-          if (!skillActivates(skill)) return;
-          activated = true;
-          tt += currentTraffic * skill.val;
-        });
-        if (activated) { currentTraffic += tt; appendLog(c.name, tt, 0, 0); }
-      });
-
-      testTeam.forEach(c => {
-        let pm = 0, activated = false;
-        c.skills.forEach(skill => {
-          if (skill.type !== 'Price_Multiply') return;
-          if (!skillActivates(skill)) return;
-          activated = true;
-          pm += skill.val;
-        });
-        if (activated) { currentPriceMultiplier += pm; appendLog(c.name, 0, 0, pm); }
-      });
-
-      const trafficRatio = currentTraffic / 100;
-      const totalIncome = testMenu.reduce((sum, d) =>
-        sum + (d.basePrice + currentPriceBuff) * currentPriceMultiplier * trafficRatio, 0);
-
-      if (totalIncome > bestScore) {
-        bestScore = totalIncome;
-        bestData = {
-          dishes: testMenu,
-          traffic: currentTraffic,
-          priceBuff: currentPriceBuff,
-          priceMultiplier: currentPriceMultiplier,
-          income: totalIncome,
-          log: tempLog
-        };
-      }
+    const ownedDishes = [];
+    masterData.dishes.forEach(d => {
+        const us = userState.dishes[d.name] || {};
+        if (!us.owned) return;
+        const lvl = us.level || 1;
+        const base = (lvl == 2) ? d.priceL2 : d.priceL1;
+        const ingredients = d.ingredients.toLowerCase();
+        const typeMatch = trendMatch && d.type.toLowerCase().includes(trendMatch);
+        let subMatch = false;
+        for (const sub of trendingSubItems) { if (ingredients.includes(sub)) { subMatch = true; break; } }
+        const ingMatch = trendMatch && (ingredients.includes(trendMatch) || subMatch);
+        const isTrending = typeMatch || ingMatch;
+        ownedDishes.push({ name: d.name, type: d.type, basePrice: base + (isTrending ? trendBonus : 0), isTrending });
     });
-  });
 
-  if (!bestData) { showError('Не найдено подходящего состава.'); return; }
-  showResults(bestData);
+    const ownedChars = [];
+    masterData.characters.forEach(c => {
+        const us = userState.characters[c.name] || {};
+        if (!us.owned) return;
+        const charLvl = us.level || 1;
+        const skills = (c.skills || [])
+            .filter(s => charLvl >= (s.level || 1) && s.val > 0)
+            .map(s => ({ val: s.val, req: s.req || 0, type: s.type, tag: s.tag || 'None' }));
+        if (skills.length > 0) ownedChars.push({ name: c.name, skills });
+    });
+
+    if (ownedDishes.length === 0) { showError('Нет блюд в наличии. Перейдите на вкладку Блюда и отметьте некоторые как имеющиеся.'); return; }
+    if (ownedDishes.length < maxDishes) { showError(`Нужно как минимум ${maxDishes} блюд для ${cafesOwned} кафе. У вас есть ${ownedDishes.length}.`); return; }
+
+    const dishCombos = getCombinations(ownedDishes, maxDishes);
+    const charCombos = ownedChars.length > 0
+        ? getCombinations(ownedChars, Math.min(ownedChars.length, maxChars))
+        : [[]];
+
+    let bestScore = 0, bestData = null;
+
+    dishCombos.forEach(testMenu => {
+        const tagCounts = {};
+        testMenu.forEach(d => { tagCounts[d.type] = (tagCounts[d.type] || 0) + 1; });
+        const maxTagCount = Math.max(...Object.values(tagCounts), 0);
+
+        charCombos.forEach(testTeam => {
+            let currentTraffic = 2400;
+            let currentPriceBuff = 0;
+            let currentPriceMultiplier = 1.0;
+            const tempLog = [];
+
+            function getTagCount(skill) {
+                if (skill.tag === 'None') return 0;
+                if (skill.tag === 'Any') return maxTagCount;
+                return tagCounts[skill.tag] || 0;
+            }
+
+            function skillActivates(skill) {
+                const tc = skill.tag === 'None' ? skill.req : getTagCount(skill);
+                return tc >= skill.req;
+            }
+
+            function appendLog(name, traffic, price, multiplier) {
+                const parts = [];
+                if (traffic > 0) parts.push(`+${traffic.toFixed(2)} Трафик`);
+                if (price > 0) parts.push(`+${price.toFixed(2)} Цена`);
+                if (multiplier > 0) parts.push(`+${(multiplier*100).toFixed(1)}% Цена`);
+                if (!parts.length) return;
+                const idx = tempLog.findIndex(l => l.name === name);
+                if (idx >= 0) tempLog[idx].buffs += ' & ' + parts.join(' & ');
+                else tempLog.push({ name, buffs: parts.join(' & ') });
+            }
+
+            testTeam.forEach(c => {
+                let tt = 0, tp = 0, activated = false;
+                c.skills.forEach(skill => {
+                    if (skill.type === 'Traffic_Multiply' || skill.type === 'Price_Multiply') return;
+                    if (!skillActivates(skill)) return;
+                    activated = true;
+                    if (skill.type === 'Traffic_Flat') tt += skill.val;
+                    if (skill.type === 'Price_Flat') tp += skill.val;
+                });
+                if (activated) { currentTraffic += tt; currentPriceBuff += tp; appendLog(c.name, tt, tp, 0); }
+            });
+
+            testTeam.forEach(c => {
+                let tt = 0, activated = false;
+                c.skills.forEach(skill => {
+                    if (skill.type !== 'Traffic_Multiply') return;
+                    if (!skillActivates(skill)) return;
+                    activated = true;
+                    tt += currentTraffic * skill.val;
+                });
+                if (activated) { currentTraffic += tt; appendLog(c.name, tt, 0, 0); }
+            });
+
+            testTeam.forEach(c => {
+                let pm = 0, activated = false;
+                c.skills.forEach(skill => {
+                    if (skill.type !== 'Price_Multiply') return;
+                    if (!skillActivates(skill)) return;
+                    activated = true;
+                    pm += skill.val;
+                });
+                if (activated) { currentPriceMultiplier += pm; appendLog(c.name, 0, 0, pm); }
+            });
+
+            const trafficRatio = currentTraffic / 100;
+            const totalIncome = testMenu.reduce((sum, d) =>
+                sum + (d.basePrice + currentPriceBuff) * currentPriceMultiplier * trafficRatio, 0);
+
+            if (totalIncome > bestScore) {
+                bestScore = totalIncome;
+                bestData = {
+                    dishes: testMenu,
+                    traffic: currentTraffic,
+                    priceBuff: currentPriceBuff,
+                    priceMultiplier: currentPriceMultiplier,
+                    income: totalIncome,
+                    log: tempLog
+                };
+            }
+        });
+    });
+
+    if (!bestData) { showError('Не найдено подходящего состава.'); return; }
+    showResults(bestData);
 }
 
 function getCombinations(array, size) {
-  const result = [];
-  function helper(start, combo) {
-    if (combo.length === size) { result.push([...combo]); return; }
-    for (let i = start; i < array.length; i++) helper(i + 1, [...combo, array[i]]);
-  }
-  helper(0, []);
-  return result;
+    const result = [];
+    function helper(start, combo) {
+        if (combo.length === size) { result.push([...combo]); return; }
+        for (let i = start; i < array.length; i++) helper(i + 1, [...combo, array[i]]);
+    }
+    helper(0, []);
+    return result;
 }
 
-// ── RESULTS ────────────────────────────────────────────────────────────────
+// ── RESULTS ───────────────────────────────────────────────────────────────
 function showError(msg) {
-  document.getElementById('resultsArea').innerHTML = `
-    <div class="results-placeholder">
-      <div class="placeholder-icon">⚠️</div>
-      <p style="color:var(--red)">${msg}</p>
-    </div>
-  `;
+    const el = document.getElementById('resultsArea');
+    if (el) el.innerHTML = `<div class="results-placeholder"><div class="placeholder-icon">⚠️</div><p style="color:var(--red)">${msg}</p></div>`;
 }
 
 function showResults(data) {
-  const { trendCategory, trendBonus } = settings;
-  const trafficRatio = data.traffic / 100;
-  const fons = TRANSLATIONS['Fons'] || 'Fons';
-
-  const trendHtml = trendCategory
-    ? `<div style="font-family:var(--mono);font-size:0.78rem;color:var(--accent);margin-bottom:0.5rem">🔥 Тренд: ${TRANSLATIONS[trendCategory] || trendCategory} (+${trendBonus.toFixed(2)} ${fons})</div>`
-    : '';
-
-  const statsHtml = `
-    <div class="result-stat-row">
-      <div class="result-stat">
-        <div class="result-stat-label">Трафик</div>
-        <div class="result-stat-value">${data.traffic.toFixed(2)}</div>
-      </div>
-      <div class="result-stat">
-        <div class="result-stat-label">Бонус цены</div>
-        <div class="result-stat-value">+${data.priceBuff.toFixed(2)}</div>
-      </div>
-      <div class="result-stat">
-        <div class="result-stat-label">Множитель цены</div>
-        <div class="result-stat-value">×${data.priceMultiplier.toFixed(3)}</div>
-      </div>
-      <div class="result-stat" style="border-color:var(--accent);background:rgba(245,166,35,0.06)">
-        <div class="result-stat-label">Общий доход (как в игре)</div>
-        <div class="result-stat-value">${data.income.toFixed(2)} <span style="font-size:0.7rem;color:var(--text3)">${fons}/час</span></div>
-      </div>
-      <div class="result-stat" style="border-color:var(--accent);background:rgba(245,166,35,0.06)">
-        <div class="result-stat-label">Общий доход (реальный)</div>
-        <div class="result-stat-value">${(data.income * (1 + settings.popularityBonus)).toFixed(2)} <span style="font-size:0.7rem;color:var(--text3)">${fons}/час</span></div>
-      </div>
-    </div>
-  `;
-
-  const dishesHtml = `
-    <div class="result-section-title">🍽️ Лучшее меню</div>
-    <div class="result-menu">
-      ${data.dishes.map(d => {
-        const finalPrice = (d.basePrice + data.priceBuff) * data.priceMultiplier;
-        return `
-        <div class="result-dish">
-          <div class="result-dish-name">
-            ${d.isTrending ? '<span class="trend-badge">🔥</span>' : ''}
-            ${TRANSLATIONS[d.name] || d.name}
-            <span style="font-size:0.7rem;color:var(--text3);font-family:var(--mono)">${TRANSLATIONS[d.type] || d.type}</span>
-          </div>
-          <div style="display:flex;gap:1rem;font-family:var(--mono);font-size:0.8rem">
-            <span class="result-dish-price">${finalPrice.toFixed(2)} ${fons}</span>
-            <span class="result-dish-income">${(finalPrice * trafficRatio).toFixed(2)}/час</span>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>
-  `;
-
-  const logHtml = data.log.length > 0 ? `
-    <div class="result-section-title" style="margin-top:1rem">👥 Бонусы персонажей</div>
-    <div class="result-log">
-      ${data.log.map(e => `
-        <div class="log-entry">
-          <span class="log-name">${TRANSLATIONS[e.name] || e.name}</span>
-          <span class="log-buffs">${e.buffs}</span>
-        </div>
-      `).join('')}
-    </div>
-  ` : '';
-
-  document.getElementById('resultsArea').innerHTML = `<div class="results-output">${trendHtml}${statsHtml}${dishesHtml}${logHtml}</div>`;
+    const { trendCategory, trendBonus } = settings;
+    const trafficRatio = data.traffic / 100;
+    const fons = TRANSLATIONS['Fons'] || 'Fons';
+    
+    const trendHtml = trendCategory
+        ? `<div style="font-family:var(--mono);font-size:0.78rem;color:var(--accent);margin-bottom:0.5rem">🔥 Тренд: ${TRANSLATIONS[trendCategory] || trendCategory} (+${trendBonus.toFixed(2)} ${fons})</div>`
+        : '';
+        
+    const statsHtml = `<div class="result-stat-row">
+        <div class="result-stat"><div class="result-stat-label">Трафик</div><div class="result-stat-value">${data.traffic.toFixed(2)}</div></div>
+        <div class="result-stat"><div class="result-stat-label">Бонус цены</div><div class="result-stat-value">+${data.priceBuff.toFixed(2)}</div></div>
+        <div class="result-stat"><div class="result-stat-label">Множитель цены</div><div class="result-stat-value">×${data.priceMultiplier.toFixed(3)}</div></div>
+        <div class="result-stat" style="border-color:var(--accent);background:rgba(245,166,35,0.06)"><div class="result-stat-label">Общий доход (как в игре)</div><div class="result-stat-value">${data.income.toFixed(2)} <span style="font-size:0.7rem;color:var(--text3)">${fons}/час</span></div></div>
+        <div class="result-stat" style="border-color:var(--accent);background:rgba(245,166,35,0.06)"><div class="result-stat-label">Общий доход (реальный)</div><div class="result-stat-value">${(data.income * (1 + settings.popularityBonus)).toFixed(2)} <span style="font-size:0.7rem;color:var(--text3)">${fons}/час</span></div></div>
+    </div>`;
+    
+    const dishesHtml = `<div class="result-section-title">🍽️ Лучшее меню</div><div class="result-menu">${data.dishes.map(d => { 
+        const finalPrice = (d.basePrice + data.priceBuff) * data.priceMultiplier; 
+        return `<div class="result-dish">
+            <div class="result-dish-name">${d.isTrending ? '<span class="trend-badge">🔥</span>' : ''}${TRANSLATIONS[d.name] || d.name} <span style="font-size:0.7rem;color:var(--text3);font-family:var(--mono)">${TRANSLATIONS[d.type] || d.type}</span></div>
+            <div style="display:flex;gap:1rem;font-family:var(--mono);font-size:0.8rem">
+                <span class="result-dish-price">${finalPrice.toFixed(2)} ${fons}</span>
+                <span class="result-dish-income">${(finalPrice * trafficRatio).toFixed(2)}/час</span>
+            </div>
+        </div>`; 
+    }).join('')}</div>`;
+    
+    const logHtml = data.log.length > 0 ? `<div class="result-section-title" style="margin-top:1rem">👥 Бонусы персонажей</div><div class="result-log">${data.log.map(e => `<div class="log-entry"><span class="log-name">${TRANSLATIONS[e.name] || e.name}</span><span class="log-buffs">${e.buffs}</span></div>`).join('')}</div>` : '';
+    
+    const el = document.getElementById('resultsArea');
+    if (el) el.innerHTML = `<div class="results-output">${trendHtml}${statsHtml}${dishesHtml}${logHtml}</div>`;
 }
 
-// ── START ─────────────────────────────────────────────────────────────────
-init();
+// ── START ────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', init);
