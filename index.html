@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cafe by Origen — Оптимизатор</title>
+    <title>Кафе "Ориген" — Оптимизатор</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
             <div class="logo">
                 <span class="logo-icon">☕</span>
                 <div>
-                    <div class="logo-title">Cafe by Origen</div>
+                    <div class="logo-title">Кафе "Ориген"</div>
                     <div class="logo-sub">Оптимизатор ростера</div>
                 </div>
             </div>
@@ -113,8 +113,14 @@
         </section>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/gh/Kuro-121/NTE-CafeOptimizer@main/data.js"></script>
-    <script src="localization.js"></script>    
-    <script src="app.js"></script>
+    <script>
+  const today = new Date().toISOString().split('T')[0];
+  const s = document.createElement('script');
+  s.src = `https://cdn.jsdelivr.net/gh/Kuro-121/NTE-CafeOptimizer@main/data.js?date=${today}`;
+  s.async = false; // ← ВОТ ЭТА СТРОКА КРИТИЧНА
+  document.head.appendChild(s);
+</script>
+<script src="localization.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
