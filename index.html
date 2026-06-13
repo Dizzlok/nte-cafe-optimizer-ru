@@ -1,126 +1,139 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Кафе "Ориген" — Оптимизатор</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Кафе "Ориген" — Оптимизатор</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="grain"></div>
-    <header>
-        <div class="header-inner">
-            <div class="logo">
-                <span class="logo-icon">☕</span>
-                <div>
-                    <div class="logo-title">Кафе "Ориген"</div>
-                    <div class="logo-sub">Оптимизатор ростера</div>
-                </div>
-            </div>
-            <nav class="tabs">
-                <button class="tab active" data-tab="optimizer">Оптимизатор</button>
-                <button class="tab" data-tab="dishes">Блюда</button>
-                <button class="tab" data-tab="characters">Персонажи</button>
-            </nav>
+  <div class="grain"></div>
+  
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">☕</div>
+        <div>
+          <div class="logo-title">Кафе "Ориген"</div>
+          <div class="logo-sub">Оптимизатор ростера <span class="author-badge">by Dizzlok</span></div>
         </div>
-    </header>
+      </div>
+      <nav class="tabs">
+        <button class="tab active" data-tab="optimizer">Оптимизатор</button>
+        <button class="tab" data-tab="dishes">Блюда</button>
+        <button class="tab" data-tab="characters">Персонажи</button>
+      </nav>
+    </div>
+  </header>
 
-    <main>
-        <!-- Вкладка: Оптимизатор -->
-        <section id="tab-optimizer" class="tab-content active">
-            <div class="optimizer-grid">
-                <div class="panel">
-                    <div class="panel-title">Настройки</div>
-                    <div class="field-group">
-                        <label for="cafesOwned">Кафе в собственности</label>
-                        <span class="field-hint">Макс. блюд и персонажей</span>
-                        <select id="cafesOwned">
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5" selected>5</option>
-                        </select>
-                    </div>
-                    <div class="field-group">
-                        <label for="trendCategory">Текущий тренд</label>
-                        <select id="trendCategory">
-                            <option value="">— Нет —</option>
-                        </select>
-                    </div>
-                    <div class="field-group">
-                        <label for="trendBonus">Бонус тренда (+Fons)</label>
-                        <input type="number" id="trendBonus" value="0" step="0.01">
-                    </div>
-                    <div class="field-group">
-                        <label for="popularityBonus">Бонус популярности</label>
-                        <input type="number" id="popularityBonus" value="0" step="0.01">
-                    </div>
-                    <button id="btnRun" class="btn-run">
-                        <span class="btn-icon"></span>
-                        <span>Рассчитать</span>
-                    </button>
-                    <div id="rosterSummary" class="roster-summary"></div>
-                </div>
+  <main>
+    <!-- ОПТИМИЗАТОР -->
+    <section id="tab-optimizer" class="tab-content active">
+      <div class="optimizer-grid">
+        <div class="settings-panel panel">
+          <div class="panel-title">Настройки</div>
+          
+          <div class="field-group">
+            <label>Кафе в собственности
+              <span class="field-hint">Макс. блюд и персонажей</span>
+            </label>
+            <select id="cafesOwned">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5" selected>5</option>
+            </select>
+          </div>
 
-                <div class="panel full-panel">
-                    <div class="panel-title">Результаты</div>
-                    <div id="resultsArea">
-                        <div class="results-placeholder">
-                            <div class="placeholder-icon">☕</div>
-                            <p>Настройте параметры и запустите оптимизатор, чтобы увидеть лучший состав.</p>
-                        </div>
-                    </div>
-                </div>
+          <div class="field-group">
+            <label>Текущий тренд</label>
+            <select id="trendCategory">
+              <option value="">— Нет —</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label>Бонус тренда (+Fons)</label>
+            <input type="number" id="trendBonus" step="0.01" value="0" />
+          </div>
+
+          <div class="field-group">
+            <label>Бонус популярности</label>
+            <input type="number" id="popularityBonus" step="0.01" value="0" />
+          </div>
+
+          <button id="btnRun" class="btn-run">
+            <span class="btn-icon">⚡</span>
+            Рассчитать
+          </button>
+
+          <div id="rosterSummary" class="roster-summary"></div>
+
+          <div class="support-section">
+            <a href="https://boosty.to/dizzlok" target="_blank" class="boosty-btn">
+              ⭐ Поддержать на Бусти
+            </a>
+            <p class="credits">
+              Движок расчетов: 
+              <a href="https://github.com/Kuro-121/NTE-CafeOptimizer" target="_blank">Kuro-121</a>
+            </p>
+          </div>
+        </div>
+
+        <div class="results-panel panel full-panel">
+          <div class="panel-header">
+            <div class="panel-title">Результаты</div>
+          </div>
+          <div id="resultsArea">
+            <div class="results-placeholder">
+              <div class="placeholder-icon">☕</div>
+              <p>Настройте параметры и запустите оптимизатор, чтобы увидеть лучший состав.</p>
             </div>
-        </section>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <!-- Вкладка: Блюда -->
-        <section id="tab-dishes" class="tab-content">
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Блюда</div>
-                    <div style="display:flex;gap:0.5rem">
-                        <button id="btnToggleAllOwned" class="btn-bulk">Выбрать все</button>
-                        <button id="btnToggleAllLevel" class="btn-bulk">Поставить все Ур. 2</button>
-                    </div>
-                </div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>В наличии</th>
-                                <th>Уровень</th>
-                                <th>Название</th>
-                                <th>Тип</th>
-                                <th>Ингредиенты</th>
-                                <th>Цена L1</th>
-                                <th>Цена L2</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dishTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
+    <!-- БЛЮДА -->
+    <section id="tab-dishes" class="tab-content">
+      <div class="table-panel panel full-panel">
+        <div class="panel-header">
+          <div class="panel-title">Блюда</div>
+          <div class="table-actions">
+            <button id="btnToggleAllOwned" class="btn-bulk">Выбрать все</button>
+            <button id="btnToggleAllLevel" class="btn-bulk">Поставить все Ур. 2</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>В наличии</th>
+                <th>Уровень</th>
+                <th>Название</th>
+                <th>Тип</th>
+                <th>Ингредиенты</th>
+                <th>Цена L1</th>
+                <th>Цена L2</th>
+              </tr>
+            </thead>
+            <tbody id="dishTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-        <!-- Вкладка: Персонажи -->
-        <section id="tab-characters" class="tab-content">
-            <div class="panel">
-                <div class="panel-title">Персонажи</div>
-                <div id="charCards" class="char-cards"></div>
-            </div>
-        </section>
-    </main>
+    <!-- ПЕРСОНАЖИ -->
+    <section id="tab-characters" class="tab-content">
+      <div class="cards-panel panel full-panel">
+        <div class="panel-title">Персонажи</div>
+        <div id="charCards" class="char-cards"></div>
+      </div>
+    </section>
+  </main>
 
-    <script>
-        const today = new Date().toISOString().split('T')[0];
-        const s = document.createElement('script');
-        s.src = `https://cdn.jsdelivr.net/gh/Kuro-121/NTE-CafeOptimizer@main/data.js?date=${today}`;
-        s.async = false;
-        document.head.appendChild(s);
-    </script>
-    <script src="localization.js"></script>
-    <script src="app.js"></script>
+  <script src="localization.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
