@@ -1,36 +1,21 @@
-// ── CONFIGURATION ──────────────────────────────────────────────────────────
-const EXTERNAL_DATA_URL = 'https://raw.githubusercontent.com/Kuro-121/NTE-CafeOptimizer/main/data.js';
-
 // ── STORAGE KEYS ───────────────────────────────────────────────────────────
 const DATA_KEY = 'cafe_origen_data_v2';
 const SETTINGS_KEY = 'cafe_origen_settings';
-const LAST_FETCH_KEY = 'cafe_origen_last_data_fetch';
-
 let masterData = { ingredients: [], dishes: [], characters: [] };
 let userState = { dishes: {}, characters: {} };
 let settings = { cafesOwned: 5, trendCategory: '', trendBonus: 1.0, popularityBonus: 0 };
 
-// ── DATA LOADER (через fetch) ──────────────────────────────────────────────
+// ── DATA LOADER (локальная загрузка для максимальной скорости) ─────────────
 async function loadMasterData() {
-    const now = Date.now();
-    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-    let lastFetch = localStorage.getItem(LAST_FETCH_KEY);
-    let cacheBuster = '';
-
-    if (!lastFetch || (now - parseInt(lastFetch)) > ONE_DAY_MS) {
-        cacheBuster = `?v=${now}`;
-        localStorage.setItem(LAST_FETCH_KEY, now.toString());
-    }
-
     try {
-        const response = await fetch(EXTERNAL_DATA_URL + cacheBuster);
+        const response = await fetch('/data.js');
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const scriptText = await response.text();
         
-        // Создаем функцию из текста скрипта и выполняем
+        // Создаём функцию из текста скрипта и выполняем
         const getData = new Function(scriptText + '; return MASTER_DATA;');
         const data = getData();
         
@@ -44,28 +29,19 @@ async function loadMasterData() {
     }
 }
 
-// ── INITIALIZATION ─────────────────────────────────────────────────────────
+// ─ INITIALIZATION ─────────────────────────────────────────────────────────
 async function init() {
     try {
         masterData = await loadMasterData();
         console.log('Данные успешно загружены:', masterData);
     } catch (error) {
-        console.error("Критическая ошибка инициализации:", error);
+        console.error("Критическая ошибка инициализации: ", error);
         const resultsArea = document.getElementById('resultsArea');
         if (resultsArea) {
-            resultsArea.innerHTML = `
-                <div class="results-placeholder">
-                    <div class="placeholder-icon">⚠️</div>
-                    <p style="color:var(--red)">${error.message}</p>
-                    <p style="font-size:0.8rem; color:var(--text3); margin-top:0.5rem;">
-                        Попробуйте обновить страницу или проверьте подключение к интернету.
-                    </p>
-                </div>
-            `;
+            resultsArea.innerHTML = `<div class="results-placeholder"><div class="placeholder-icon">⚠️</div><p style="color:var(--red)">${error.message}</p><p style="font-size:0.8rem; color:var(--text3); margin-top:0.5rem;">Попробуйте обновить страницу или проверьте подключение к интернету.</p></div>`;
         }
         return;
     }
-
     loadSettings();
     loadUserState();
     seedUserState();
@@ -149,11 +125,10 @@ document.querySelectorAll('.tab').forEach(tab => {
 function populateTrendDropdown() {
     const sel = document.getElementById('trendCategory');
     sel.innerHTML = '<option value="">— Нет —</option>';
-    
     const dishTypes = [...new Set(masterData.dishes.map(d => d.type))].sort();
     const ingNames = masterData.ingredients.map(i => i.name).sort();
     const ingCats = [...new Set(masterData.ingredients.map(i => i.category).filter(Boolean))].sort();
-    
+
     const addGroup = (label, items) => {
         if (!items.length) return;
         const grp = document.createElement('optgroup');
@@ -167,7 +142,7 @@ function populateTrendDropdown() {
         });
         sel.appendChild(grp);
     };
-    
+
     addGroup('Dish Types', dishTypes);
     addGroup('Categories', ingCats);
     addGroup('Ingredients', ingNames);
@@ -177,7 +152,6 @@ function populateTrendDropdown() {
 function renderDishes() {
     const tbody = document.getElementById('dishTableBody');
     tbody.innerHTML = '';
-    
     masterData.dishes.forEach(d => {
         if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
         const us = userState.dishes[d.name];
@@ -259,18 +233,17 @@ function renderCharacters() {
     const container = document.getElementById('charCards');
     if (!container) return;
     container.innerHTML = '';
-    
     masterData.characters.forEach(c => {
         if (!userState.characters[c.name]) userState.characters[c.name] = { owned: false, level: 1 };
         const us = userState.characters[c.name];
         const isOwned = us.owned;
         const card = document.createElement('div');
         card.className = `char-card${isOwned ? ' owned' : ''}`;
-        
+
         const skillsHtml = (c.skills || []).map(s => `
             <div class="skill-item">
                 <span class="skill-lvl">L${s.level}</span>
-                <span class="skill-val">${s.val > 0 && s.type.includes('Traffic') ? '+'+s.val : s.val > 0 && s.val < 1 ? '+'+s.val.toFixed(3) : s.val}</span>
+                <span class="skill-val">${s.val > 0 && s.type.includes('Traffic') ? '+' + s.val : s.val > 0 && s.val < 1 ? '+' + s.val.toFixed(3) : s.val}</span>
                 <span class="skill-type">${TRANSLATIONS[s.type] || s.type}</span>
                 ${s.tag !== 'None' ? `<span class="skill-tag">/ ${TRANSLATIONS[s.tag] || s.tag}</span>` : ''}
                 ${s.req > 0 ? `<span class="skill-req">(req ${s.req})</span>` : ''}
@@ -347,7 +320,6 @@ function updateRosterSummary() {
     const maxD = cafes, maxC = cafes * 2;
     const ownedDishes = masterData.dishes.filter(d => (userState.dishes[d.name] || {}).owned).length;
     const ownedChars = masterData.characters.filter(c => (userState.characters[c.name] || {}).owned).length;
-    
     const summaryEl = document.getElementById('rosterSummary');
     if (summaryEl) {
         summaryEl.innerHTML = `Блюда: <span>${ownedDishes}</span> в наличии / <span>${maxD}</span> слотов<br>Персонажи: <span>${ownedChars}</span> в наличии / <span>${maxC}</span> слотов<br>Комбинации блюд: <span>${nCr(ownedDishes, Math.min(ownedDishes, maxD))}</span><br>Комбинации персонажей: <span>${nCr(ownedChars, Math.min(ownedChars, maxC))}</span>`;
@@ -383,7 +355,6 @@ function runOptimizer() {
     const trendMatch = trendCategory.toLowerCase();
     const maxDishes = cafesOwned;
     const maxChars = cafesOwned * 2;
-    
     const trendingSubItems = trendMatch
         ? new Set(masterData.ingredients
             .filter(r => r.category.toLowerCase() === trendMatch)
@@ -452,7 +423,7 @@ function runOptimizer() {
                 const parts = [];
                 if (traffic > 0) parts.push(`+${traffic.toFixed(2)} Трафик`);
                 if (price > 0) parts.push(`+${price.toFixed(2)} Цена`);
-                if (multiplier > 0) parts.push(`+${(multiplier*100).toFixed(1)}% Цена`);
+                if (multiplier > 0) parts.push(`+${(multiplier * 100).toFixed(1)}% Цена`);
                 if (!parts.length) return;
                 const idx = tempLog.findIndex(l => l.name === name);
                 if (idx >= 0) tempLog[idx].buffs += ' & ' + parts.join(' & ');
@@ -535,11 +506,10 @@ function showResults(data) {
     const { trendCategory, trendBonus } = settings;
     const trafficRatio = data.traffic / 100;
     const fons = TRANSLATIONS['Fons'] || 'Fons';
-    
     const trendHtml = trendCategory
         ? `<div style="font-family:var(--mono);font-size:0.78rem;color:var(--accent);margin-bottom:0.5rem">🔥 Тренд: ${TRANSLATIONS[trendCategory] || trendCategory} (+${trendBonus.toFixed(2)} ${fons})</div>`
         : '';
-        
+
     const statsHtml = `<div class="result-stat-row">
         <div class="result-stat"><div class="result-stat-label">Трафик</div><div class="result-stat-value">${data.traffic.toFixed(2)}</div></div>
         <div class="result-stat"><div class="result-stat-label">Бонус цены</div><div class="result-stat-value">+${data.priceBuff.toFixed(2)}</div></div>
@@ -547,20 +517,20 @@ function showResults(data) {
         <div class="result-stat" style="border-color:var(--accent);background:rgba(245,166,35,0.06)"><div class="result-stat-label">Общий доход (как в игре)</div><div class="result-stat-value">${data.income.toFixed(2)} <span style="font-size:0.7rem;color:var(--text3)">${fons}/час</span></div></div>
         <div class="result-stat" style="border-color:var(--accent);background:rgba(245,166,35,0.06)"><div class="result-stat-label">Общий доход (реальный)</div><div class="result-stat-value">${(data.income * (1 + settings.popularityBonus)).toFixed(2)} <span style="font-size:0.7rem;color:var(--text3)">${fons}/час</span></div></div>
     </div>`;
-    
-    const dishesHtml = `<div class="result-section-title">🍽️ Лучшее меню</div><div class="result-menu">${data.dishes.map(d => { 
-        const finalPrice = (d.basePrice + data.priceBuff) * data.priceMultiplier; 
+
+    const dishesHtml = `<div class="result-section-title">️ Лучшее меню</div><div class="result-menu">${data.dishes.map(d => {
+        const finalPrice = (d.basePrice + data.priceBuff) * data.priceMultiplier;
         return `<div class="result-dish">
             <div class="result-dish-name">${d.isTrending ? '<span class="trend-badge">🔥</span>' : ''}${TRANSLATIONS[d.name] || d.name} <span style="font-size:0.7rem;color:var(--text3);font-family:var(--mono)">${TRANSLATIONS[d.type] || d.type}</span></div>
             <div style="display:flex;gap:1rem;font-family:var(--mono);font-size:0.8rem">
                 <span class="result-dish-price">${finalPrice.toFixed(2)} ${fons}</span>
                 <span class="result-dish-income">${(finalPrice * trafficRatio).toFixed(2)}/час</span>
             </div>
-        </div>`; 
+        </div>`;
     }).join('')}</div>`;
-    
-    const logHtml = data.log.length > 0 ? `<div class="result-section-title" style="margin-top:1rem">👥 Бонусы персонажей</div><div class="result-log">${data.log.map(e => `<div class="log-entry"><span class="log-name">${TRANSLATIONS[e.name] || e.name}</span><span class="log-buffs">${e.buffs}</span></div>`).join('')}</div>` : '';
-    
+
+    const logHtml = data.log.length > 0 ? `<div class="result-section-title" style="margin-top:1rem"> Бонусы персонажей</div><div class="result-log">${data.log.map(e => `<div class="log-entry"><span class="log-name">${TRANSLATIONS[e.name] || e.name}</span><span class="log-buffs">${e.buffs}</span></div>`).join('')}</div>` : '';
+
     const el = document.getElementById('resultsArea');
     if (el) el.innerHTML = `<div class="results-output">${trendHtml}${statsHtml}${dishesHtml}${logHtml}</div>`;
 }
