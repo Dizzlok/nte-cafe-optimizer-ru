@@ -8,7 +8,7 @@ let settings = { cafesOwned: 5, trendCategory: '', trendBonus: 1.0, popularityBo
 // ── DATA LOADER (локальная загрузка для максимальной скорости) ─────────────
 async function loadMasterData() {
     try {
-        const response = await fetch('/data.js');
+        const response = await fetch('./data.js');
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
