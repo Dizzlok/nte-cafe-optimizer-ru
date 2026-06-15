@@ -1,0 +1,50 @@
+nte-cafe-optimizer-ru/
+├── .github
+│   └── workflows
+│       └── sync-data.yml
+├── .gitignore
+├── app.js		(основная логика приложения)
+├── assets
+│   ├── favicon
+│   │   ├── apple-touch-icon.png
+│   │   ├── favicon-96x96.png
+│   │   ├── favicon.ico
+│   │   ├── site.webmanifest
+│   │   ├── web-app-manifest-192x192.png
+│   │   └── web-app-manifest-512x512.png
+│   └── images
+│       ├── calculator
+│       │   └── calculate.svg
+│       ├── main
+│       │   ├── bg.webp
+│       │   └── logo.png
+│       └── navigation
+│           ├── calculator.svg
+│           ├── changelog.svg
+│           ├── characters.svg
+│           ├── github.svg
+│           ├── home.svg
+│           ├── lines.svg
+│           ├── scroll-up.svg.svg
+│           ├── settings.svg
+│           ├── support.svg
+│           └── tier-list.svg
+├── css
+│   ├── ad-sidebar.css		(рекламный блок справа)	
+│   ├── base.css		(базовые стили)
+│   ├── buttons.css		(кнопки)
+│   ├── characters.css		(карточки персонажей)
+│   ├── header.css		(шапка)
+│   ├── main-content.css	(основной контент)
+│   ├── panels.css		(панели)
+│   ├── responsive.css		(адаптивность)
+│   ├── results.css		(результаты)
+│   ├── sidebar.css		(боковая панель)
+│   ├── tables.css		(таблицы)
+│   └── variables.css
+├── data.js			(движок расчетов)
+├── index.html
+├── localization.js		(Файл лаколизации)
+├── README.md
+├── sidebar.js		(сворачивание боковой панели)
+└── tree2.txt
