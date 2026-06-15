@@ -1,0 +1,10 @@
+# core data.js
+data.js
+# Repomix outputs
+repomix-output.*
+repomix.config.json
+.repomix
+#TreeMaker
+make_tree.py
+run_tree.bat
+tree.txt

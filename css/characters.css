@@ -1,0 +1,166 @@
+.char-cards { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+    gap: 0.75rem; 
+}
+
+.char-card {
+    background: var(--bg3); 
+    border: 1px solid var(--border);
+    border-radius: var(--radius); 
+    overflow: hidden;
+    transition: border-color 0.15s;
+}
+
+.char-card.owned { 
+    border-color: rgba(245,166,35,0.3); 
+}
+
+.char-card-header {
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+    padding: 1rem; 
+    cursor: pointer; 
+    user-select: none;
+}
+
+.char-card-header:hover { 
+    background: rgba(255,255,255,0.02); 
+}
+
+.char-card-left { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.6rem; 
+}
+
+.char-name { 
+    font-weight: 700; 
+    font-size: 0.95rem; 
+}
+
+.char-owned-badge {
+    font-size: 0.62rem; 
+    padding: 0.15rem 0.5rem; 
+    border-radius: 4px;
+    font-family: var(--mono); 
+    font-weight: 500; 
+    text-transform: uppercase; 
+    letter-spacing: 0.04em;
+}
+
+.char-owned-badge.owned { 
+    background: rgba(74,222,128,0.15); 
+    color: var(--green); 
+}
+
+.char-owned-badge.unowned { 
+    background: rgba(255,255,255,0.05); 
+    color: var(--text3); 
+}
+
+.char-chevron { 
+    color: var(--text3); 
+    transition: transform 0.2s; 
+    font-size: 0.7rem; 
+}
+
+.char-card.open .char-chevron { 
+    transform: rotate(180deg); 
+}
+
+.char-card-body {
+    display: none; 
+    padding: 0.75rem 1rem 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.char-card.open .char-card-body { 
+    display: block; 
+}
+
+.char-controls {
+    display: flex; 
+    align-items: center; 
+    gap: 1rem; 
+    flex-wrap: wrap;
+}
+
+.char-control-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+}
+
+.char-control-item label {
+    font-size: 0.72rem; 
+    font-weight: 600; 
+    color: var(--text2);
+    letter-spacing: 0.04em; 
+    white-space: nowrap;
+}
+
+.char-control-item input[type="number"] { 
+    width: 65px; 
+    padding: 0.35rem 0.5rem; 
+    font-size: 0.8rem; 
+}
+
+.skills-section { 
+    margin-top: 0.75rem; 
+}
+
+.skills-title {
+    font-size: 0.62rem; 
+    font-weight: 700; 
+    letter-spacing: 0.1em;
+    text-transform: uppercase; 
+    color: var(--text3); 
+    margin-bottom: 0.5rem;
+}
+
+.skill-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 0.3rem; 
+}
+
+.skill-item {
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem;
+    background: rgba(0,0,0,0.2); 
+    border-radius: 6px; 
+    padding: 0.35rem 0.6rem;
+    font-family: var(--mono); 
+    font-size: 0.75rem; 
+    color: var(--text2);
+}
+
+.skill-lvl {
+    font-size: 0.6rem; 
+    background: var(--border2); 
+    color: var(--text3);
+    padding: 0.1rem 0.35rem; 
+    border-radius: 3px; 
+    white-space: nowrap;
+}
+
+.skill-val { 
+    color: var(--accent); 
+    font-weight: 500; 
+}
+
+.skill-type { 
+    color: var(--blue); 
+}
+
+.skill-tag { 
+    color: var(--text3); 
+}
+
+.skill-req { 
+    color: var(--text3); 
+    font-size: 0.7rem; 
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Origen Optimazer",
+  "short_name": "Origen",
+  "icons": [
+    {
+      "src": "/public/assets/ico/favicon.ico/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/public/assets/ico/favicon.ico/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#515151",
+  "background_color": "#515151",
+  "display": "standalone"
+}

@@ -1,0 +1,26 @@
+@media (max-width: 1100px) {
+    .side-nav { 
+        display: none; 
+    }
+    
+    .toggle-btn { 
+        display: none; 
+    }
+    
+    .main-wrapper {
+        margin-left: 0;
+        max-width: 100%;
+        grid-template-columns: 1fr;
+        padding: 2rem;
+    }
+    
+    .ad-sidebar { 
+        display: none; 
+    }
+}
+
+@media (max-width: 900px) { 
+    .optimizer-grid { 
+        grid-template-columns: 1fr; 
+    } 
+}

@@ -1,0 +1,132 @@
+.btn-run {
+    width: 100%; 
+    margin-top: 1.25rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; 
+    border-radius: var(--radius); 
+    color: #0d0f14;
+    font-family: var(--sans); 
+    font-size: 0.9rem; 
+    font-weight: 800;
+    padding: 0.75rem; 
+    cursor: pointer; 
+    letter-spacing: 0.02em;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 0.5rem;
+    transition: opacity 0.15s, transform 0.1s; 
+    box-shadow: 0 4px 20px rgba(245,166,35,0.25);
+}
+
+.btn-run:hover { 
+    opacity: 0.9; 
+    transform: translateY(-1px); 
+}
+
+.btn-run:active { 
+    transform: translateY(0); 
+}
+
+.btn-run-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    object-fit: contain;
+    filter: none;
+}
+
+.btn-bulk {
+    font-family: var(--mono); 
+    font-size: 0.72rem; 
+    font-weight: 500;
+    padding: 0.35rem 0.75rem; 
+    border-radius: 6px; 
+    cursor: pointer;
+    border: 1px solid var(--border2); 
+    background: var(--bg3);
+    color: var(--text2); 
+    transition: all 0.15s; 
+    white-space: nowrap;
+}
+
+.btn-bulk:hover { 
+    border-color: var(--accent); 
+    color: var(--accent); 
+}
+
+.btn-bulk.active { 
+    border-color: var(--accent); 
+    color: var(--accent); 
+    background: rgba(245,166,35,0.08); 
+}
+
+.bulk-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.boosty-btn,
+.github-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.boosty-btn {
+    background: linear-gradient(135deg, #f97316, #fb923c);
+    color: white;
+    box-shadow: 0 2px 12px rgba(249, 115, 22, 0.25);
+}
+
+.boosty-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.35);
+}
+
+.github-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.github-btn:hover {
+    background: var(--border);
+    border-color: var(--text2);
+}
+
+.boosty-btn-icon,
+.github-btn-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    object-fit: contain;
+    filter: none;
+}
+
+.side-nav.collapsed .boosty-btn,
+.side-nav.collapsed .github-btn {
+    padding: 0.6rem;
+    justify-content: center;
+    gap: 0;
+}
+
+.side-nav.collapsed .boosty-btn-text,
+.side-nav.collapsed .github-btn-text {
+    display: none;
+}
+
+.side-nav.collapsed .boosty-btn-icon,
+.side-nav.collapsed .github-btn-icon {
+    width: 24px;
+    height: 24px;
+}

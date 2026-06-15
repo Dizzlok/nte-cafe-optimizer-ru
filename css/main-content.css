@@ -1,0 +1,20 @@
+.main-wrapper {
+    margin-left: 292px;
+    padding: 2rem 3rem;
+    max-width: 100%;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    align-items: start;
+}
+
+.main-wrapper.expanded {
+    margin-left: 102px;
+    max-width: 100%;
+}
+
+.content-area { 
+    min-width: 0; 
+}

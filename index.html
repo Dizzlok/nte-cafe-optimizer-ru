@@ -3,124 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Кафе "Ориген" — Оптимизатор</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Кафе "Ориген" - Оптимизатор</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="./assets/favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="96x96" href="./assets/favicon/favicon-96x96.png">
+    <link rel="apple-touch-icon" href="./assets/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="./assets/favicon/site.webmanifest">
+    
+    <!-- Styles -->
+<link rel="stylesheet" href="./css/variables.css">
+<link rel="stylesheet" href="./css/base.css">
+<link rel="stylesheet" href="./css/header.css">
+<link rel="stylesheet" href="./css/sidebar.css">
+<link rel="stylesheet" href="./css/main-content.css">
+<link rel="stylesheet" href="./css/panels.css">
+<link rel="stylesheet" href="./css/buttons.css">
+<link rel="stylesheet" href="./css/results.css">
+<link rel="stylesheet" href="./css/tables.css">
+<link rel="stylesheet" href="./css/characters.css">
+<link rel="stylesheet" href="./css/ad-sidebar.css">
+<link rel="stylesheet" href="./css/responsive.css">
 </head>
 <body>
+    <!-- Grain Effect -->
     <div class="grain"></div>
+    
+    <!-- ============================================ -->
+    <!-- HEADER                                       -->
+    <!-- ============================================ -->
     <header>
         <div class="header-inner">
             <div class="logo">
-                <span class="logo-icon">☕</span>
-                <div>
+                <img src="./assets/images/main/logo.png" alt="Logo" class="logo-img">
+                <div class="logo-text">
                     <div class="logo-title">Кафе "Ориген"</div>
-                    <div class="logo-sub">Оптимизатор ростера</div>
+                    <div class="logo-sub">ОПТИМИЗАТОР РОСТЕРА</div>
                 </div>
             </div>
-            <nav class="tabs">
+            <div class="tabs">
                 <button class="tab active" data-tab="optimizer">Оптимизатор</button>
                 <button class="tab" data-tab="dishes">Блюда</button>
                 <button class="tab" data-tab="characters">Персонажи</button>
-            </nav>
+            </div>
         </div>
     </header>
 
-    <main>
-        <!-- Вкладка: Оптимизатор -->
-        <section id="tab-optimizer" class="tab-content active">
-            <div class="optimizer-grid">
-                <div class="panel">
-                    <div class="panel-title">Настройки</div>
-                    <div class="field-group">
-                        <label for="cafesOwned">Кафе в собственности</label>
-                        <span class="field-hint">Макс. блюд и персонажей</span>
-                        <select id="cafesOwned">
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5" selected>5</option>
-                        </select>
-                    </div>
-                    <div class="field-group">
-                        <label for="trendCategory">Текущий тренд</label>
-                        <select id="trendCategory">
-                            <option value="">— Нет —</option>
-                        </select>
-                    </div>
-                    <div class="field-group">
-                        <label for="trendBonus">Бонус тренда (+Fons)</label>
-                        <input type="number" id="trendBonus" value="0" step="0.01">
-                    </div>
-                    <div class="field-group">
-                        <label for="popularityBonus">Бонус популярности</label>
-                        <input type="number" id="popularityBonus" value="0" step="0.01">
-                    </div>
-                    <button id="btnRun" class="btn-run">
-                        <span class="btn-icon"></span>
-                        <span>Рассчитать</span>
-                    </button>
-                    <div id="rosterSummary" class="roster-summary"></div>
-                </div>
+    <!-- ============================================ -->
+    <!-- TOGGLE BUTTON (Sidebar Collapse)             -->
+    <!-- ============================================ -->
+    <button class="toggle-btn" id="toggleBtn">‹</button>
 
-                <div class="panel full-panel">
-                    <div class="panel-title">Результаты</div>
-                    <div id="resultsArea">
-                        <div class="results-placeholder">
-                            <div class="placeholder-icon">☕</div>
-                            <p>Настройте параметры и запустите оптимизатор, чтобы увидеть лучший состав.</p>
+    <!-- ============================================ -->
+    <!-- SIDEBAR NAVIGATION                           -->
+    <!-- ============================================ -->
+    <nav class="side-nav" id="sideNav">
+        <div class="side-nav-scroll">
+            <!-- Header with Lines -->
+            <div class="side-nav-header">
+                <img src="./assets/images/navigation/lines.svg" alt="" class="lines-icon">
+            </div>
+            
+            <!-- Navigation Section -->
+            <div class="side-nav-section">
+                <div class="side-nav-section-title">Навигация</div>
+                <ul class="side-nav-links">
+                    <li>
+                        <a href="index.html" class="side-link active">
+                            <img src="./assets/images/navigation/home.svg" alt="" class="nav-icon">
+                            <span class="side-nav-link-text">На главную</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="calculator.html" class="side-link">
+                            <img src="./assets/images/navigation/calculator.svg" alt="" class="nav-icon">
+                            <span class="side-nav-link-text">Калькулятор</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="content/characters.html" class="side-link">
+                            <img src="./assets/images/navigation/characters.svg" alt="" class="nav-icon">
+                            <span class="side-nav-link-text">Персонажи</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="content/tier-list.html" class="side-link">
+                            <img src="./assets/images/navigation/tier-list.svg" alt="" class="nav-icon">
+                            <span class="side-nav-link-text">Тир Лист</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="changelog.html" class="side-link">
+                            <img src="./assets/images/navigation/changelog.svg" alt="" class="nav-icon">
+                            <span class="side-nav-link-text">Список изменений</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="settings.html" class="side-link">
+                            <img src="./assets/images/navigation/settings.svg" alt="" class="nav-icon">
+                            <span class="side-nav-link-text">Настройки</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer with Support Buttons -->
+        <div class="side-nav-footer">
+            <a href="https://boosty.to/yourpage" class="boosty-btn" target="_blank">
+                <img src="./assets/images/navigation/support.svg" alt="" class="boosty-btn-icon">
+                <span class="boosty-btn-text">Поддержать</span>
+            </a>
+            <a href="https://github.com/Dizzlok/nte-cafe-optimizer-ru" class="github-btn" target="_blank">
+                <img src="./assets/images/navigation/github.svg" alt="" class="github-btn-icon">
+                <span class="github-btn-text">GitHub</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ============================================ -->
+    <!-- MAIN CONTENT WRAPPER                         -->
+    <!-- ============================================ -->
+    <div class="main-wrapper" id="mainWrapper">
+        <div class="content-area">
+            
+            <!-- ============================================ -->
+            <!-- TAB: OPTIMIZER                               -->
+            <!-- ============================================ -->
+            <div id="tab-optimizer" class="tab-content active">
+                <div class="optimizer-grid">
+                    
+                    <!-- Settings Panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">Настройки</div>
+                        </div>
+                        
+                        <div class="field-group">
+                            <label for="cafesOwned">Кафе в собственности</label>
+                            <select id="cafesOwned">
+                                <option value="1">1 кафе</option>
+                                <option value="2">2 кафе</option>
+                                <option value="3">3 кафе</option>
+                                <option value="4">4 кафе</option>
+                                <option value="5" selected>5 кафе</option>
+                            </select>
+                            <span class="field-hint">Макс. блюд и персонажей</span>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="trendCategory">Текущий тренд</label>
+                            <select id="trendCategory">
+                                <option value="">— Нет —</option>
+                            </select>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="trendBonus">Бонус тренда (+Fons)</label>
+                            <input type="number" id="trendBonus" step="0.01" value="0.75">
+                        </div>
+
+                        <div class="field-group">
+                            <label for="popularityBonus">Бонус популярности</label>
+                            <input type="number" id="popularityBonus" step="0.01" value="0">
+                            <span class="field-hint">Множитель дохода</span>
+                        </div>
+
+                        <button class="btn-run" id="btnRun">
+                            <img src="./assets/images/calculator/calculate.svg" alt="" class="btn-run-icon">
+                            Рассчитать
+                        </button>
+
+                        <div class="roster-summary" id="rosterSummary">
+                            Блюда: <span>0</span> в наличии / <span>5</span> слотов<br>
+                            Персонажи: <span>0</span> в наличии / <span>10</span> слотов
+                        </div>
+
+                        <div class="support-section">
+                            <p class="credits">Движок расчетов: <a href="https://github.com/Kuro-121" target="_blank">Kuro-121</a></p>
+                        </div>
+                    </div>
+
+                    <!-- Results Panel -->
+                    <div class="panel full-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">Результаты</div>
+                            <div class="panel-hint">Настройте параметры и запустите оптимизатор</div>
+                        </div>
+                        <div id="resultsArea">
+                            <div class="results-placeholder">
+                                <div class="placeholder-icon">☕</div>
+                                <p>Настройте параметры и запустите оптимизатор, чтобы увидеть лучший состав.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
 
-        <!-- Вкладка: Блюда -->
-        <section id="tab-dishes" class="tab-content">
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Блюда</div>
-                    <div style="display:flex;gap:0.5rem">
-                        <button id="btnToggleAllOwned" class="btn-bulk">Выбрать все</button>
-                        <button id="btnToggleAllLevel" class="btn-bulk">Поставить все Ур. 2</button>
+            <!-- ============================================ -->
+            <!-- TAB: DISHES                                  -->
+            <!-- ============================================ -->
+            <div id="tab-dishes" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Блюда</div>
+                        <div class="bulk-actions">
+                            <button class="btn-bulk" id="btnToggleAllOwned">Выбрать все</button>
+                            <button class="btn-bulk" id="btnToggleAllLevel">Установить все L2</button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-check">✓</th>
+                                    <th class="col-level">Ур.</th>
+                                    <th class="col-name">Название</th>
+                                    <th class="col-type">Тип</th>
+                                    <th class="col-ingredients">Ингредиенты</th>
+                                    <th class="col-price">Цена L1</th>
+                                    <th class="col-price">Цена L2</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dishTableBody"></tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>В наличии</th>
-                                <th>Уровень</th>
-                                <th>Название</th>
-                                <th>Тип</th>
-                                <th>Ингредиенты</th>
-                                <th>Цена L1</th>
-                                <th>Цена L2</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dishTableBody"></tbody>
-                    </table>
+            </div>
+
+            <!-- ============================================ -->
+            <!-- TAB: CHARACTERS                              -->
+            <!-- ============================================ -->
+            <div id="tab-characters" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Персонажи</div>
+                    </div>
+                    <div class="char-cards" id="charCards"></div>
                 </div>
             </div>
-        </section>
 
-        <!-- Вкладка: Персонажи -->
-        <section id="tab-characters" class="tab-content">
-            <div class="panel">
-                <div class="panel-title">Персонажи</div>
-                <div id="charCards" class="char-cards"></div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- ADVERTISEMENT SIDEBAR                        -->
+        <!-- ============================================ -->
+        <aside class="ad-sidebar">
+            <div class="ad-title">Реклама</div>
+            <div class="ad-placeholder">
+                <div class="ad-placeholder-icon">📢</div>
+                <div>300 × 600</div>
             </div>
-        </section>
-    </main>
+        </aside>
+    </div>
 
+    <!-- ============================================ -->
+    <!-- SCRIPTS                                      -->
+    <!-- ============================================ -->
+    <script src="./localization.js"></script>
+    <script src="./app.js"></script>
+    <script src="./sidebar.js"></script>
+    
     <script>
-        const today = new Date().toISOString().split('T')[0];
-        const s = document.createElement('script');
-        s.src = `https://cdn.jsdelivr.net/gh/Kuro-121/NTE-CafeOptimizer@main/data.js?date=${today}`;
-        s.async = false;
-        document.head.appendChild(s);
+        // Tab Switching Logic
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
     </script>
-    <script src="localization.js"></script>
-    <script src="app.js"></script>
 </body>
 </html>
