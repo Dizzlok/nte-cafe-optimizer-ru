@@ -5,6 +5,8 @@ repomix-output.*
 repomix.config.json
 .repomix
 #TreeMaker
+!treemaker
 make_tree.py
 run_tree.bat
 tree.txt
+tree2.txt
