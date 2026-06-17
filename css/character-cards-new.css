@@ -1,0 +1,248 @@
+/* ============================================ */
+/* СОВРЕМЕННЫЕ КАРТОЧКИ ПЕРСОНАЖЕЙ              */
+/* ============================================ */
+
+/* Контейнер сетки карточек */
+.char-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+/* Карточка персонажа */
+.char-card-modern {
+    position: relative;
+    background: rgba(19, 22, 30, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 2px solid rgba(37, 41, 56, 0.5);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* Персонаж есть в наличии */
+.char-card-modern.owned {
+    background: rgba(245, 166, 35, 0.08);
+    border-color: rgba(245, 166, 35, 0.4);
+    box-shadow: 
+        0 4px 16px rgba(245, 166, 35, 0.15),
+        inset 0 1px 0 rgba(245, 166, 35, 0.1);
+}
+
+/* Персонажа нет в наличии */
+.char-card-modern.not-owned {
+    background: rgba(26, 30, 42, 0.4);
+    border-color: rgba(46, 51, 71, 0.4);
+    opacity: 0.7;
+}
+
+/* Hover эффекты */
+.char-card-modern.owned:hover {
+    border-color: rgba(245, 166, 35, 0.2);
+    box-shadow: 
+        0 8px 24px rgba(245, 166, 35, 0.2),
+        inset 0 1px 0 rgba(245, 166, 35, 0.15);
+    transform: translateY(-2px);
+}
+
+.char-card-modern.not-owned:hover {
+    border-color: rgba(46, 51, 71, 0.6);
+    opacity: 0.85;
+    background: rgba(26, 30, 42, 0.5);
+}
+
+/* Верхняя часть карточки с портретом */
+.char-card-header-modern {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(37, 41, 56, 0.5);
+}
+
+/* Портрет персонажа */
+.char-portrait {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid rgba(37, 41, 56, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.char-card-modern.owned .char-portrait {
+    border-color: rgba(245, 166, 35, 0.5);
+}
+
+/* Информация о персонаже */
+.char-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.char-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.char-name-modern {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.char-card-modern.owned .char-name-modern {
+    color: var(--accent);
+}
+
+/* Специализация персонажа */
+.char-specialty {
+    font-size: 0.7rem;
+    color: var(--text3);
+    font-family: var(--mono);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Индикатор наличия */
+.char-ownership-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.char-ownership-badge.owned {
+    background: var(--green);
+    color: var(--green);
+}
+
+.char-ownership-badge.not-owned {
+    background: var(--text3);
+    color: var(--text3);
+}
+
+/* Тело карточки с навыками */
+.char-card-body-modern {
+    padding: 1rem;
+}
+
+/* Название навыка */
+.char-skill-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+}
+
+.char-card-modern.owned .char-skill-name {
+    color: var(--accent);
+}
+
+/* Описание навыка */
+.char-skill-desc {
+    font-size: 0.75rem;
+    color: var(--text3);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    min-height: 40px;
+    white-space: normal;
+}
+
+/* Селектор уровней */
+.char-level-selector {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 20;
+}
+
+.char-level-btn {
+    flex: 1;
+    min-width: 40px;
+    padding: 0.4rem 0.6rem;
+    background: rgba(26, 30, 42, 0.6);
+    border: 1px solid rgba(46, 51, 71, 0.5);
+    border-radius: 6px;
+    color: var(--text3);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+    position: relative;
+    z-index: 20;
+}
+
+.char-level-btn:hover {
+    background: rgba(37, 41, 56, 0.6);
+    border-color: rgba(74, 79, 99, 0.6);
+    color: var(--text2);
+}
+
+.char-level-btn.active {
+    background: rgba(245, 166, 35, 0.2);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 12px rgba(245, 166, 35, 0.3);
+}
+
+.char-card-modern.not-owned .char-level-btn {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.char-card-modern.not-owned .char-level-btn:hover {
+    background: rgba(26, 30, 42, 0.6);
+    border-color: rgba(46, 51, 71, 0.5);
+}
+
+/* Чекбокс владения - кликабельная область всей карточки */
+.char-ownership-toggle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+
+/* Иконка ранга */
+.char-rank-img {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Адаптивность */
+@media (max-width: 900px) {
+    .char-cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .char-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}

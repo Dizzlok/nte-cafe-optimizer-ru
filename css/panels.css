@@ -155,3 +155,39 @@ select option {
 .credits a:hover {
     text-decoration: underline;
 }
+
+/* Статистика персонажей */
+.char-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.stat-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    background: rgba(26, 30, 42, 0.6);
+    border: 1px solid rgba(46, 51, 71, 0.5);
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+.stat-value {
+    font-family: var(--mono);
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.stat-label {
+    color: var(--text3);
+}
+
+.char-skill-desc {
+    font-size: 0.75rem;
+    color: var(--text3);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    min-height: 40px;
+    white-space: normal;
+}

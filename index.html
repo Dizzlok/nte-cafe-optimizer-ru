@@ -24,6 +24,8 @@
 <link rel="stylesheet" href="./css/characters.css">
 <link rel="stylesheet" href="./css/ad-sidebar.css">
 <link rel="stylesheet" href="./css/responsive.css">
+<link rel="stylesheet" href="./css/character-cards-new.css">
+<link rel="stylesheet" href="./css/dish-cards.css">
 </head>
 <body>
     <!-- Grain Effect -->
@@ -201,48 +203,40 @@
                 </div>
             </div>
 
-            <!-- ============================================ -->
-            <!-- TAB: DISHES                                  -->
-            <!-- ============================================ -->
+            <!-- TAB: DISHES -->
             <div id="tab-dishes" class="tab-content">
                 <div class="panel">
                     <div class="panel-header">
                         <div class="panel-title">Блюда</div>
-                        <div class="bulk-actions">
-                            <button class="btn-bulk" id="btnToggleAllOwned">Выбрать все</button>
-                            <button class="btn-bulk" id="btnToggleAllLevel">Установить все L2</button>
+                            <div class="bulk-actions">
+                                <button class="btn-bulk" id="btnToggleAllOwned">Выбрать все</button>
+                                <button class="btn-bulk" id="btnToggleAllLevel">Установить все L2</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th class="col-check">✓</th>
-                                    <th class="col-level">Ур.</th>
-                                    <th class="col-name">Название</th>
-                                    <th class="col-type">Тип</th>
-                                    <th class="col-ingredients">Ингредиенты</th>
-                                    <th class="col-price">Цена L1</th>
-                                    <th class="col-price">Цена L2</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dishTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                        <div class="dishes-container" id="dishesContainer"></div>
+    </div>
+</div>
 
             <!-- ============================================ -->
             <!-- TAB: CHARACTERS                              -->
             <!-- ============================================ -->
             <div id="tab-characters" class="tab-content">
-                <div class="panel">
-                    <div class="panel-header">
-                        <div class="panel-title">Персонажи</div>
-                    </div>
-                    <div class="char-cards" id="charCards"></div>
-                </div>
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title">Персонажи</div>
+            <div class="char-stats">
+                <span class="stat-badge">
+                    <span class="stat-value" id="ownedCount">0</span>
+                    <span class="stat-label">в наличии</span>
+                </span>
+                <span class="stat-badge">
+                    <span class="stat-value" id="totalCount">0</span>
+                    <span class="stat-label">всего</span>
+                </span>
             </div>
+        </div>
+        <div class="char-cards-grid" id="charCardsGrid"></div>
+    </div>
 
         </div>
 
@@ -261,6 +255,7 @@
     <!-- ============================================ -->
     <!-- SCRIPTS                                      -->
     <!-- ============================================ -->
+    <script src="./js/character-data.js"></script>
     <script src="./localization.js"></script>
     <script src="./app.js"></script>
     <script src="./sidebar.js"></script>

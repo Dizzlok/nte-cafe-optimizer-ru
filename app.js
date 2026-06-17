@@ -1,3 +1,20 @@
+// ── НОРМАЛИЗАЦИЯ ДАННЫХ (убирает пробелы из ключей data.js) ────────────────
+function normalizeData(obj) {
+    if (Array.isArray(obj)) {
+        return obj.map(item => normalizeData(item));
+    } else if (obj !== null && typeof obj === 'object') {
+        const normalized = {};
+        for (const key in obj) {
+            const cleanKey = key.trim();
+            normalized[cleanKey] = normalizeData(obj[key]);
+        }
+        return normalized;
+    } else if (typeof obj === 'string') {
+        return obj.trim();
+    }
+    return obj;
+}
+
 // ── STORAGE KEYS ───────────────────────────────────────────────────────────
 const DATA_KEY = 'cafe_origen_data_v2';
 const SETTINGS_KEY = 'cafe_origen_settings';
@@ -5,7 +22,7 @@ let masterData = { ingredients: [], dishes: [], characters: [] };
 let userState = { dishes: {}, characters: {} };
 let settings = { cafesOwned: 5, trendCategory: '', trendBonus: 1.0, popularityBonus: 0 };
 
-// ── DATA LOADER (локальная загрузка для максимальной скорости) ─────────────
+// ── DATA LOADER ─────────────────────────────────────────────────────────────
 async function loadMasterData() {
     try {
         const response = await fetch('./data.js');
@@ -14,19 +31,59 @@ async function loadMasterData() {
         }
         
         const scriptText = await response.text();
-        
-        // Создаём функцию из текста скрипта и выполняем
         const getData = new Function(scriptText + '; return MASTER_DATA;');
         const data = getData();
         
-        if (!data || !data.ingredients) {
-            throw new Error('MASTER_DATA не содержит ожидаемых данных');
+        if (!data) {
+            throw new Error('MASTER_DATA пуст');
         }
         
-        return data;
+        // Нормализуем: убираем пробелы из всех ключей и значений
+        return normalizeData(data);
     } catch (error) {
         throw new Error(`Не удалось загрузить данные: ${error.message}`);
     }
+}
+
+// ── ROSTER SUMMARY ────────────────────────────────────────────────────────
+function updateRosterSummary() {
+    const cafes = parseInt(document.getElementById('cafesOwned').value) || 1;
+    const maxD = cafes;
+    const maxC = cafes * 2;
+    
+    const ownedDishes = masterData.dishes.filter(d => {
+        const name = d.name.trim();
+        return (userState.dishes[name] || {}).owned;
+    }).length;
+    
+    const ownedChars = masterData.characters.filter(c => {
+        const name = c.name.trim();
+        return (userState.characters[name] || {}).owned;
+    }).length;
+    
+    const summaryEl = document.getElementById('rosterSummary');
+    if (summaryEl) {
+        const dishCombos = nCr(ownedDishes, Math.min(ownedDishes, maxD));
+        const charCombos = nCr(ownedChars, Math.min(ownedChars, maxC));
+        
+        summaryEl.innerHTML = `
+            Блюда: <span>${ownedDishes}</span> в наличии / <span>${maxD}</span> слотов<br>
+            Персонажи: <span>${ownedChars}</span> в наличии / <span>${maxC}</span> слотов<br>
+            Комбинации блюд: <span>${dishCombos}</span><br>
+            Комбинации персонажей: <span>${charCombos}</span>
+        `;
+    }
+}
+
+function nCr(n, r) {
+    if (r > n || r < 0) return 0;
+    if (r === 0 || r === n) return 1;
+    r = Math.min(r, n - r);
+    let result = 1;
+    for (let i = 0; i < r; i++) {
+        result = result * (n - i) / (i + 1);
+    }
+    return Math.round(result);
 }
 
 // ─ INITIALIZATION ─────────────────────────────────────────────────────────
@@ -148,199 +205,390 @@ function populateTrendDropdown() {
     addGroup('Ingredients', ingNames);
 }
 
-// ── DISHES ────────────────────────────────────────────────────────────────
+// ── DISHES ───────────────────────────// ── DISHES (CARD DESIGN) ──────────────────────────────────────────────────
+function normalizeNameToPath(name) {
+    return name
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9_]/g, '');
+}
+
 function renderDishes() {
-    const tbody = document.getElementById('dishTableBody');
-    tbody.innerHTML = '';
+    const container = document.getElementById('dishesContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    // Группируем блюда по типам
+    const dishesByType = {};
     masterData.dishes.forEach(d => {
-        if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
-        const us = userState.dishes[d.name];
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td style="text-align:center">
-                <input type="checkbox" data-dish-owned="${d.name}" ${us.owned ? 'checked' : ''} />
-            </td>
-            <td>
-                <select data-dish-lvl="${d.name}" style="width:70px">
-                    <option value="1" ${us.level == 1 ? 'selected' : ''}>L1</option>
-                    <option value="2" ${us.level == 2 ? 'selected' : ''}>L2</option>
-                </select>
-            </td>
-            <td class="name-col">${TRANSLATIONS[d.name] || d.name}</td>
-            <td class="type-col">${TRANSLATIONS[d.type] || d.type}</td>
-            <td style="font-size:0.75rem;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text3)">
-                ${d.ingredients.split(',').map(ing => TRANSLATIONS[ing.trim()] || ing.trim()).join(', ')}
-            </td>
-            <td>${d.priceL1}</td>
-            <td>${d.priceL2}</td>
-        `;
-        tbody.appendChild(tr);
+        const type = d.type;
+        if (!dishesByType[type]) dishesByType[type] = [];
+        dishesByType[type].push(d);
     });
+    
+    // Порядок категорий
+    const typeOrder = ['Desserts', 'Beverages', 'Main Dishes'];
+    const sortedTypes = Object.keys(dishesByType).sort((a, b) => {
+        const ia = typeOrder.indexOf(a);
+        const ib = typeOrder.indexOf(b);
+        if (ia === -1 && ib === -1) return a.localeCompare(b);
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+    });
+    
+    // Проверяем тренд
+    const trendCategory = settings.trendCategory.toLowerCase();
+    const trendingSubItems = trendCategory
+        ? new Set(masterData.ingredients
+            .filter(r => r.category.toLowerCase() === trendCategory)
+            .map(r => r.name.toLowerCase()))
+        : new Set();
+    
+    sortedTypes.forEach(type => {
+        const typeSection = document.createElement('div');
+        typeSection.className = 'dish-category-section';
+        
+        // Заголовок категории
+        const title = document.createElement('div');
+        title.className = 'dish-category-title';
+        title.textContent = TRANSLATIONS[type] || type;
+        typeSection.appendChild(title);
+        
+        // Сетка карточек
+        const grid = document.createElement('div');
+        grid.className = 'dish-cards-grid';
+        
+        dishesByType[type].forEach(d => {
+            if (!userState.dishes[d.name]) {
+                userState.dishes[d.name] = { owned: false, level: 1 };
+            }
+            const us = userState.dishes[d.name];
+            const isOwned = us.owned;
+            const currentLevel = us.level || 1;
+            
+            // Проверяем тренд
+            const ingredients = d.ingredients.toLowerCase();
+            const typeMatch = trendCategory && d.type.toLowerCase().includes(trendCategory);
+            let subMatch = false;
+            for (const sub of trendingSubItems) {
+                if (ingredients.includes(sub)) { subMatch = true; break; }
+            }
+            const ingMatch = trendCategory && (ingredients.includes(trendCategory) || subMatch);
+            const isTrending = typeMatch || ingMatch;
+            
+            // Цена
+            const basePrice = currentLevel === 2 ? d.priceL2 : d.priceL1;
+            const bonus = isTrending ? settings.trendBonus : 0;
+            const finalPrice = basePrice + bonus;
+            
+            // Ингредиенты
+            const ingredientsList = d.ingredients.split(',').map(ing => ing.trim());
+            
+            const card = document.createElement('div');
+            card.className = `dish-card ${isOwned ? 'owned' : 'not-owned'}`;
+            card.dataset.dishName = d.name;
+            
+            card.innerHTML = `
+                <input type="checkbox" class="dish-ownership-toggle" 
+                       data-dish-owned="${d.name}" ${isOwned ? 'checked' : ''}>
+                
+                <div class="dish-card-header">
+                    <img src="./assets/images/common/dishes/${normalizeNameToPath(d.name)}.png" 
+                         alt="${d.name}" 
+                         class="dish-icon"
+                         onerror="this.style.display='none'">
+                    
+                    <div class="dish-info">
+                        <div class="dish-name">${TRANSLATIONS[d.name] || d.name}</div>
+                        <div class="dish-meta">
+                            <span class="dish-type-badge">${TRANSLATIONS[type] || type}</span>
+                            <span class="dish-level-badge">Lv${currentLevel}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="dish-ownership-badge ${isOwned ? 'owned' : 'not-owned'}"></div>
+                </div>
+                
+                <div class="dish-price-row">
+                    <span class="dish-price">${finalPrice.toFixed(1)} fons</span>
+                    ${bonus > 0 ? `<span class="dish-price-bonus">+${bonus.toFixed(2)}</span>` : ''}
+                </div>
+                
+                <div class="dish-level-selector">
+                    <button class="dish-level-btn ${currentLevel === 1 ? 'active' : ''}" 
+                            data-dish-lvl="${d.name}" data-level="1">L1</button>
+                    <button class="dish-level-btn ${currentLevel === 2 ? 'active' : ''}" 
+                            data-dish-lvl="${d.name}" data-level="2">L2</button>
+                    <button class="dish-level-btn hidden" 
+                            data-dish-lvl="${d.name}" data-level="3" disabled>L3</button>
+                </div>
+                
+                <div class="dish-ingredients">
+                    ${ingredientsList.map(ing => `
+                        <div class="ingredient-row">
+                            <img src="./assets/images/common/ingredients/${normalizeNameToPath(ing)}.png" 
+                                 alt="${ing}" 
+                                 class="ingredient-icon"
+                                 onerror="this.style.display='none'">
+                            <span class="ingredient-name">${TRANSLATIONS[ing] || ing}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            grid.appendChild(card);
+        });
+        
+        typeSection.appendChild(grid);
+        container.appendChild(typeSection);
+    });
+    
+    setupDishEventListeners();
+}
 
-    tbody.querySelectorAll('[data-dish-owned]').forEach(cb => {
-        cb.addEventListener('change', () => {
-            const name = cb.dataset.dishOwned;
-            userState.dishes[name].owned = cb.checked;
+function setupDishEventListeners() {
+    // Клик по карточке (кроме кнопок уровней)
+    document.querySelectorAll('.dish-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.dish-level-btn')) return;
+            
+            const name = card.dataset.dishName;
+            const checkbox = card.querySelector('.dish-ownership-toggle');
+            
+            if (!userState.dishes[name]) {
+                userState.dishes[name] = { owned: false, level: 1 };
+            }
+            
+            userState.dishes[name].owned = !userState.dishes[name].owned;
+            checkbox.checked = userState.dishes[name].owned;
             saveUserState();
+            renderDishes();
             updateRosterSummary();
         });
     });
-
-    tbody.querySelectorAll('[data-dish-lvl]').forEach(sel => {
-        sel.addEventListener('change', () => {
-            const name = sel.dataset.dishLvl;
-            userState.dishes[name].level = parseInt(sel.value);
+    
+    // Выбор уровня
+    document.querySelectorAll('.dish-level-btn:not(.hidden)').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const name = btn.dataset.dishLvl;
+            const level = parseInt(btn.dataset.level);
+            
+            if (!userState.dishes[name]) {
+                userState.dishes[name] = { owned: false, level: 1 };
+            }
+            
+            userState.dishes[name].level = level;
             saveUserState();
+            renderDishes();
         });
     });
-
-    const btnOwned = document.getElementById('btnToggleAllOwned');
-    if (btnOwned) {
-        const allOwned = masterData.dishes.every(d => userState.dishes[d.name]?.owned);
-        btnOwned.textContent = allOwned ? 'Сбросить все' : 'Выбрать все';
-        btnOwned.classList.toggle('active', allOwned);
-        btnOwned.onclick = () => {
-            const nowAllOwned = masterData.dishes.every(d => userState.dishes[d.name]?.owned);
-            masterData.dishes.forEach(d => {
-                if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
-                userState.dishes[d.name].owned = !nowAllOwned;
-            });
-            saveUserState();
-            updateRosterSummary();
-            renderDishes();
-        };
-    }
-
-    const btnLevel = document.getElementById('btnToggleAllLevel');
-    if (btnLevel) {
-        const allL2 = masterData.dishes.every(d => userState.dishes[d.name]?.level === 2);
-        btnLevel.textContent = allL2 ? 'Установить все L1' : 'Установить все L2';
-        btnLevel.classList.toggle('active', allL2);
-        btnLevel.onclick = () => {
-            const nowAllL2 = masterData.dishes.every(d => userState.dishes[d.name]?.level === 2);
-            masterData.dishes.forEach(d => {
-                if (!userState.dishes[d.name]) userState.dishes[d.name] = { owned: false, level: 1 };
-                userState.dishes[d.name].level = nowAllL2 ? 1 : 2;
-            });
-            saveUserState();
-            renderDishes();
-        };
-    }
 }
 
 // ── CHARACTERS ────────────────────────────────────────────────────────────
 function renderCharacters() {
-    const container = document.getElementById('charCards');
+    const container = document.getElementById('charCardsGrid');
     if (!container) return;
     container.innerHTML = '';
+    
+    // Обновляем статистику
+    const ownedCount = masterData.characters.filter(c => (userState.characters[c.name] || {}).owned).length;
+    document.getElementById('ownedCount').textContent = ownedCount;
+    document.getElementById('totalCount').textContent = masterData.characters.length;
+    
     masterData.characters.forEach(c => {
-        if (!userState.characters[c.name]) userState.characters[c.name] = { owned: false, level: 1 };
+        if (!userState.characters[c.name]) {
+            userState.characters[c.name] = { owned: false, level: 1 };
+        }
+        
         const us = userState.characters[c.name];
         const isOwned = us.owned;
+        const currentLevel = us.level || 1;
+        
+        // Считываем данные персонажей из character-data.js
+        const charRank = CHARACTER_RANKS[c.name] || { rank: 'A', element: 'order' };
+        const rank = charRank.rank;
+        const element = charRank.element;
+        
+        // Определяем специализацию по первому навыку
+        const specialty = getCharacterSpecialty(c);
+        
+        // Создаем карточку
         const card = document.createElement('div');
-        card.className = `char-card${isOwned ? ' owned' : ''}`;
-
-        const skillsHtml = (c.skills || []).map(s => `
-            <div class="skill-item">
-                <span class="skill-lvl">L${s.level}</span>
-                <span class="skill-val">${s.val > 0 && s.type.includes('Traffic') ? '+' + s.val : s.val > 0 && s.val < 1 ? '+' + s.val.toFixed(3) : s.val}</span>
-                <span class="skill-type">${TRANSLATIONS[s.type] || s.type}</span>
-                ${s.tag !== 'None' ? `<span class="skill-tag">/ ${TRANSLATIONS[s.tag] || s.tag}</span>` : ''}
-                ${s.req > 0 ? `<span class="skill-req">(req ${s.req})</span>` : ''}
-            </div>
-        `).join('');
-
-        card.innerHTML = `
-            <div class="char-card-header">
-                <div class="char-card-left">
-                    <span class="char-name">${TRANSLATIONS[c.name] || c.name}</span>
-                    <span class="char-owned-badge ${isOwned ? 'owned' : 'unowned'}">${isOwned ? 'В наличии' : 'Нет в наличии'}</span>
-                </div>
-                <span class="char-chevron">▼</span>
-            </div>
-            <div class="char-card-body">
-                <div class="char-controls">
-                    <div class="char-control-item">
-                        <label>В наличии</label>
-                        <input type="checkbox" data-char-owned="${c.name}" ${isOwned ? 'checked' : ''} />
+        card.className = `char-card-modern ${isOwned ? 'owned' : 'not-owned'}`;
+        card.dataset.charName = c.name; // Добавляем data-атрибут для обработчика
+        
+        // HTML карточки
+            card.innerHTML = `
+            <input type="checkbox" class="char-ownership-toggle" 
+           data-char-owned="${c.name}" ${isOwned ? 'checked' : ''}>
+    
+            <div class="char-card-header-modern">
+                <img src="./assets/images/calculator/characters/${c.name.toLowerCase().replace(/\s+/g, '_')}.png" 
+                     alt="${c.name}" 
+                     class="char-portrait"
+                     onerror="this.src='./assets/images/common/placeholder-character.png'">
+                
+                <div class="char-info">
+                    <div class="char-name-row">
+                        <span class="char-name-modern">${TRANSLATIONS[c.name] || c.name}</span>
+                        <img src="./assets/images/common/rangs/rank_${rank}.png" 
+                            alt="${rank}" 
+                            class="char-rank-img"
+                            onerror="this.style.display='none'">
                     </div>
-                    <div class="char-control-item">
-                        <label>Уровень</label>
-                        <input type="number" min="1" max="5" value="${us.level || 1}" data-char-lvl="${c.name}" />
-                    </div>
+                    <div class="char-specialty">${specialty}</div>
                 </div>
-                <div class="skills-section">
-                    <div class="skills-title">Навыки</div>
-                    <div class="skill-list">${skillsHtml}</div>
+                
+                <div class="char-ownership-badge ${isOwned ? 'owned' : 'not-owned'}"></div>
+            </div>
+            
+            <div class="char-card-body-modern">
+                <div class="char-skill-name">${getSkillName(c)}</div>
+                <div class="char-skill-desc">${getSkillDescription(c, currentLevel)}</div>
+                
+                <div class="char-level-selector">
+                    ${[1, 2, 3, 4, 5].map(lvl => `
+                        <button class="char-level-btn ${lvl === currentLevel ? 'active' : ''}" 
+                                data-char-lvl="${c.name}" 
+                                data-level="${lvl}"
+                                ${!isOwned ? 'disabled' : ''}>
+                            L${lvl}
+                        </button>
+                    `).join('')}
                 </div>
             </div>
         `;
+        
         container.appendChild(card);
     });
+    
+    // Обработчики событий
+    setupCharacterEventListeners();
+}
 
-    container.querySelectorAll('.char-card-header').forEach(header => {
-        header.addEventListener('click', () => {
-            header.closest('.char-card').classList.toggle('open');
-        });
+// Вспомогательные функции
+function getCharacterSpecialty(character) {
+    if (!character.skills || character.skills.length === 0) return 'Нет навыков';
+    
+    const skill = character.skills[0];
+    const translations = {
+        'Price_Flat': 'Плоская цена',
+        'Price_Multiply': 'Множитель цены',
+        'Traffic_Flat': 'Плоский трафик',
+        'Traffic_Multiply': 'Множитель трафика'
+    };
+    
+    return translations[skill.type] || skill.type;
+}
+
+function getSkillName(character) {
+    if (!character.skills || character.skills.length === 0) return 'Навык';
+    
+    const skill = character.skills[0];
+    const names = {
+        'Price_Flat': 'Бонус к цене',
+        'Price_Multiply': 'Множитель цены',
+        'Traffic_Flat': 'Бонус к трафику',
+        'Traffic_Multiply': 'Множитель трафика'
+    };
+    
+    return names[skill.type] || 'Навык';
+}
+
+function getSkillDescription(character, level) {
+    if (!character.skills || character.skills.length === 0) return 'Нет навыков';
+    
+    // Собираем ВСЕ навыки до выбранного уровня включительно
+    const activeSkills = character.skills.filter(s => s.level <= level && s.val > 0);
+    
+    if (activeSkills.length === 0) return 'Нет активных навыков';
+    
+    // Группируем по типу и суммируем значения
+    const totals = {};
+    activeSkills.forEach(skill => {
+        const key = skill.type;
+        if (!totals[key]) totals[key] = { val: 0, tag: skill.tag };
+        totals[key].val += skill.val;
     });
+    
+    // Формируем описание для каждого типа
+    const parts = [];
+    for (const [type, data] of Object.entries(totals)) {
+        let desc = '';
+        if (type === 'Price_Flat') {
+            desc = `+${data.val.toFixed(2)} к цене`;
+        } else if (type === 'Price_Multiply') {
+            desc = `+${(data.val * 100).toFixed(1)}% к цене`;
+        } else if (type === 'Traffic_Flat') {
+            desc = `+${Math.round(data.val)} к трафику`;
+        } else if (type === 'Traffic_Multiply') {
+            desc = `+${(data.val * 100).toFixed(1)}% к трафику`;
+        }
+        if (data.tag && data.tag !== 'None') {
+            desc += ` (${data.tag})`;
+        }
+        parts.push(desc);
+    }
+    
+    return parts.join(' · ');
+}
 
-    container.querySelectorAll('[data-char-owned]').forEach(cb => {
-        cb.addEventListener('change', () => {
-            const name = cb.dataset.charOwned;
-            userState.characters[name].owned = cb.checked;
-            const card = cb.closest('.char-card');
-            const badge = card.querySelector('.char-owned-badge');
-            if (cb.checked) {
-                card.classList.add('owned');
-                badge.className = 'char-owned-badge owned';
-                badge.textContent = 'В наличии';
-            } else {
-                card.classList.remove('owned');
-                badge.className = 'char-owned-badge unowned';
-                badge.textContent = 'Нет в наличии';
+function setupCharacterEventListeners() {
+    // Клик по всей карточке
+    document.querySelectorAll('.char-card-modern').forEach(card => {
+        card.addEventListener('click', (e) => {
+            // Игнорируем клики по кнопкам уровней
+            if (e.target.closest('.char-level-btn') || 
+                e.target.closest('.char-level-selector')) {
+                return;
             }
+            
+            const name = card.dataset.charName;
+            const checkbox = card.querySelector('.char-ownership-toggle');
+            
+            if (!userState.characters[name]) {
+                userState.characters[name] = { owned: false, level: 1 };
+            }
+            
+            // Переключаем состояние
+            userState.characters[name].owned = !userState.characters[name].owned;
+            if (!userState.characters[name].owned) {
+                userState.characters[name].level = 1;
+            }
+            
+            checkbox.checked = userState.characters[name].owned;
             saveUserState();
+            renderCharacters();
             updateRosterSummary();
         });
     });
-
-    container.querySelectorAll('[data-char-lvl]').forEach(inp => {
-        inp.addEventListener('change', () => {
-            const name = inp.dataset.charLvl;
-            userState.characters[name].level = Math.max(1, Math.min(5, parseInt(inp.value) || 1));
-            inp.value = userState.characters[name].level;
-            saveUserState();
+    
+    // Выбор уровня - клик по кнопке
+    document.querySelectorAll('.char-level-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const card = btn.closest('.char-card-modern');
+            const name = btn.dataset.charLvl;
+            const level = parseInt(btn.dataset.level);
+            
+            if (!userState.characters[name]) {
+                userState.characters[name] = { owned: false, level: 1 };
+            }
+            
+            if (userState.characters[name].owned) {
+                userState.characters[name].level = level;
+                saveUserState();
+                renderCharacters();
+            }
         });
     });
-}
-
-// ── ROSTER SUMMARY ────────────────────────────────────────────────────────
-function updateRosterSummary() {
-    const cafes = parseInt(document.getElementById('cafesOwned').value) || 1;
-    const maxD = cafes, maxC = cafes * 2;
-    const ownedDishes = masterData.dishes.filter(d => (userState.dishes[d.name] || {}).owned).length;
-    const ownedChars = masterData.characters.filter(c => (userState.characters[c.name] || {}).owned).length;
-    const summaryEl = document.getElementById('rosterSummary');
-    if (summaryEl) {
-        summaryEl.innerHTML = `Блюда: <span>${ownedDishes}</span> в наличии / <span>${maxD}</span> слотов<br>Персонажи: <span>${ownedChars}</span> в наличии / <span>${maxC}</span> слотов<br>Комбинации блюд: <span>${nCr(ownedDishes, Math.min(ownedDishes, maxD))}</span><br>Комбинации персонажей: <span>${nCr(ownedChars, Math.min(ownedChars, maxC))}</span>`;
-    }
-}
-
-['cafesOwned', 'trendCategory', 'trendBonus', 'popularityBonus'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-        el.addEventListener('input', () => { saveSettings(); updateRosterSummary(); });
-        el.addEventListener('change', () => { saveSettings(); updateRosterSummary(); });
-    }
-});
-
-function nCr(n, r) {
-    if (r > n || r < 0) return 0;
-    if (r === 0 || r === n) return 1;
-    r = Math.min(r, n - r);
-    let result = 1;
-    for (let i = 0; i < r; i++) result = result * (n - i) / (i + 1);
-    return Math.round(result);
 }
 
 // ── OPTIMIZER ─────────────────────────────────────────────────────────────

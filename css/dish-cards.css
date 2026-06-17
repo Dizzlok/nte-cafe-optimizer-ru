@@ -1,0 +1,300 @@
+/* ============================================ */
+/* КАРТОЧКИ БЛЮД                                */
+/* ============================================ */
+
+/* Контейнер для всех блюд */
+.dishes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Секция категории */
+.dish-category-section {
+    margin-bottom: 1rem;
+}
+
+/* Заголовок категории */
+.dish-category-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Сетка карточек */
+.dish-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+/* Карточка блюда */
+.dish-card {
+    position: relative;
+    background: rgba(19, 22, 30, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 2px solid rgba(37, 41, 56, 0.5);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Блюдо есть в наличии */
+.dish-card.owned {
+    background: rgba(245, 166, 35, 0.08);
+    border-color: rgba(245, 166, 35, 0.4);
+    box-shadow: 
+        0 4px 16px rgba(245, 166, 35, 0.15),
+        inset 0 1px 0 rgba(245, 166, 35, 0.1);
+}
+
+/* Блюда нет в наличии */
+.dish-card.not-owned {
+    background: rgba(26, 30, 42, 0.4);
+    border-color: rgba(46, 51, 71, 0.4);
+    opacity: 0.7;
+}
+
+/* Hover эффекты */
+.dish-card.owned:hover {
+    border-color: rgba(245, 166, 35, 0.2);
+    box-shadow: 
+        0 8px 24px rgba(245, 166, 35, 0.2),
+        inset 0 1px 0 rgba(245, 166, 35, 0.15);
+    transform: translateY(-2px);
+}
+
+.dish-card.not-owned:hover {
+    border-color: rgba(46, 51, 71, 0.6);
+    opacity: 0.85;
+    background: rgba(26, 30, 42, 0.5);
+}
+
+/* Шапка карточки */
+.dish-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(37, 41, 56, 0.5);
+}
+
+/* Иконка блюда */
+.dish-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid rgba(37, 41, 56, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+}
+
+.dish-card.owned .dish-icon {
+    border-color: rgba(245, 166, 35, 0.5);
+}
+
+/* Информация о блюде */
+.dish-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.dish-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dish-card.owned .dish-name {
+    color: var(--accent);
+}
+
+.dish-meta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.dish-type-badge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    background: rgba(46, 51, 71, 0.6);
+    border-radius: 4px;
+    color: var(--text3);
+    font-family: var(--mono);
+}
+
+.dish-level-badge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    background: rgba(74, 79, 99, 0.6);
+    border-radius: 4px;
+    color: var(--text2);
+    font-family: var(--mono);
+}
+
+/* Цена */
+.dish-price-row {
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+}
+
+.dish-price {
+    color: var(--text);
+    font-weight: 700;
+}
+
+.dish-price-bonus {
+    color: var(--green);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Кнопки уровней */
+.dish-level-selector {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0 1rem 0.75rem;
+    position: relative;
+    z-index: 10;
+}
+
+.dish-level-btn {
+    flex: 1;
+    padding: 0.4rem;
+    background: rgba(26, 30, 42, 0.6);
+    border: 1px solid rgba(46, 51, 71, 0.5);
+    border-radius: 6px;
+    color: var(--text3);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+.dish-level-btn:hover:not(:disabled) {
+    background: rgba(37, 41, 56, 0.6);
+    border-color: rgba(74, 79, 99, 0.6);
+    color: var(--text2);
+}
+
+.dish-level-btn.active {
+    background: rgba(245, 166, 35, 0.2);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 12px rgba(245, 166, 35, 0.3);
+}
+
+.dish-level-btn.hidden {
+    display: none;
+}
+
+.dish-card.not-owned .dish-level-btn {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Индикатор владения */
+.dish-ownership-toggle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.dish-ownership-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+    z-index: 5;
+}
+
+.dish-ownership-badge.owned {
+    background: var(--green);
+    color: var(--green);
+}
+
+.dish-ownership-badge.not-owned {
+    background: var(--text3);
+    color: var(--text3);
+}
+
+/* Табличка ингредиентов */
+.dish-ingredients {
+    margin: 0 1rem 1rem;
+    padding: 0.75rem;
+    background: rgba(13, 15, 20, 0.4);
+    border: 1px solid rgba(37, 41, 56, 0.5);
+    border-radius: 8px;
+}
+
+.ingredient-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+.ingredient-row:not(:last-child) {
+    border-bottom: 1px solid rgba(37, 41, 56, 0.3);
+}
+
+.ingredient-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.ingredient-name {
+    flex: 1;
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Адаптивность */
+@media (max-width: 900px) {
+    .dish-cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .dish-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}

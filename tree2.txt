@@ -3,7 +3,14 @@ nte-cafe-optimizer-ru/
 │   └── workflows
 │       └── sync-data.yml
 ├── .gitignore
-├── app.js		(основная логика приложения)
+├── .repomix
+│   ├── bundles.json
+│   └── config
+│       ├── css
+│       │   └── html-repomix.config.json
+│       ├── css.style-repomix.config.json
+│       └── vse-repomix.config.json
+├── app.js
 ├── assets
 │   ├── favicon
 │   │   ├── apple-touch-icon.png
@@ -14,7 +21,22 @@ nte-cafe-optimizer-ru/
 │   │   └── web-app-manifest-512x512.png
 │   └── images
 │       ├── calculator
-│       │   └── calculate.svg
+│       │   ├── calculate.svg
+│       │   └── characters
+│       │       ├── adler.png
+│       │       ├── aurelia.png
+│       │       ├── baicang.png
+│       │       ├── chiz.png
+│       │       ├── dafodil.png
+│       │       ├── edgar.png
+│       │       ├── haniel.png
+│       │       ├── lacrimosa.png
+│       │       ├── mint.png
+│       │       ├── nanally.png
+│       │       ├── sakiri.png
+│       │       └── skia.png
+│       ├── common
+│       │   └── rangs
 │       ├── main
 │       │   ├── bg.webp
 │       │   └── logo.png
@@ -29,10 +51,12 @@ nte-cafe-optimizer-ru/
 │           ├── settings.svg
 │           ├── support.svg
 │           └── tier-list.svg
+├── bg.webp
 ├── css
 │   ├── ad-sidebar.css		(рекламный блок справа)	
 │   ├── base.css		(базовые стили)
 │   ├── buttons.css		(кнопки)
+│   ├── character-cards-new.css	(табс: персонажи, на странице калькулятора)
 │   ├── characters.css		(карточки персонажей)
 │   ├── header.css		(шапка)
 │   ├── main-content.css	(основной контент)
@@ -42,9 +66,13 @@ nte-cafe-optimizer-ru/
 │   ├── sidebar.css		(боковая панель)
 │   ├── tables.css		(таблицы)
 │   └── variables.css
-├── data.js			(движок расчетов)
+├── data.js
 ├── index.html
-├── localization.js		(Файл лаколизации)
+├── js
+│   └── character-data.js	(база данных персонажей, ранги, стихии, и т.п.)
+├── localization.js	(файл лаколизации)
 ├── README.md
-├── sidebar.js		(сворачивание боковой панели)
+├── repomix-output.xml
+├── repomix.config.json
+├── sidebar.js
 └── tree2.txt
