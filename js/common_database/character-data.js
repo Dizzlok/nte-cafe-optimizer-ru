@@ -1,5 +1,4 @@
 // Ранги и стихии персонажей
-// Формат: "Имя персонажа": { rank: "S"|"A", element: "chaos"|"order"|"nature"|"light"|"dark" }
 const CHARACTER_RANKS = {
     "Lacrimosa": { rank: "S", element: "chaos" },
     "Aurelia": { rank: "A", element: "light" },
@@ -14,3 +13,6 @@ const CHARACTER_RANKS = {
     "Edgar": { rank: "A", element: "dark" },
     "Chiz": { rank: "S", element: "chaos" }
 };
+
+// Делаем доступным для модулей
+window.CHARACTER_RANKS = CHARACTER_RANKS;
