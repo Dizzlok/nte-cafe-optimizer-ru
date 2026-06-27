@@ -1,0 +1,30 @@
+.dish-card {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;           /* Легкое скругление */
+    object-fit: cover;
+    
+    /* Убираем рамку, добавляем тень для объема */
+    border: none;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.4),           /* Внешняя тень */
+        0 0 0 1px rgba(255, 255, 255, 0.1);     /* Тонкий светлый контур */
+    
+    /* Опционально: легкое свечение для owned персонажей */
+    transition: all 0.2s ease;
+}
+
+/* Для выбранных персонажей - чуть ярче тень */
+.dish-card.owned .char-portrait {
+    box-shadow: 
+        0 2px 12px rgba(245, 166, 35, 0.3),     /* Золотистое свечение */
+        0 0 0 1px rgba(245, 166, 35, 0.4);      /* Золотой контур */
+}
+
+/* При наведении - легкий эффект */
+.dish-card-header-modern:hover .char-portrait {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.15);
+}

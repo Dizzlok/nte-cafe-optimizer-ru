@@ -27,7 +27,11 @@ body {
 }
 
 body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
     background: 
         linear-gradient(rgba(13, 15, 20, 0.85), rgba(13, 15, 20, 0.9)),
-        url('../assets/images/main/bg.webp')
-}   
+        url('../assets/images/main/bg.avif') center/cover no-repeat;
+}

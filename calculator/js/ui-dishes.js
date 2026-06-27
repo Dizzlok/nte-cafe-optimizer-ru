@@ -84,10 +84,10 @@ export function renderDishes(masterData, TRANSLATIONS, settings, updateRosterSum
 
             card.innerHTML = `
                 <div class="dish-card-header">
-                    <img src="../assets/images/common/dishes/${normalizeNameToPath(d.name)}.png" 
+                    <img src="../assets/images/common/dishes/100/${normalizeNameToPath(d.name)}.webp" 
                          alt="${d.name}" 
                          class="dish-icon"
-                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIGZpbGw9IiMxYTFmMmEiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzU1NWI3MiIgZm9udC1zaXplPSIxMiI+PzwvdGV4dD48L3N2Zz4='"
+                         onerror="if(this.src.indexOf('not_found_1')===-1)this.src='./assets/images/common/not_found/not_found_256.webp'"
                     
                     <div class="dish-info">
                         <div class="dish-name">${TRANSLATIONS[d.name] || d.name}</div>
@@ -115,10 +115,10 @@ export function renderDishes(masterData, TRANSLATIONS, settings, updateRosterSum
                 <div class="dish-ingredients">
                     ${ingredientsList.map(ing => `
                         <div class="ingredient-row">
-                            <img src="../assets/images/common/ingredients/${normalizeNameToPath(ing)}.png" 
+                            <img src="../assets/images/common/ingredients/${normalizeNameToPath(ing)}.webp" 
                                  alt="${ing}" 
                                  class="ingredient-icon"
-                                onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIGZpbGw9IiMxYTFmMmEiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzU1NWI3MiIgZm9udC1zaXplPSIxMCI+PzwvdGV4dD48L3N2Zz4='"
+                                onerror="if(this.src.indexOf('not_found_1')===-1)this.src='./assets/images/common/not_found/not_found_256.webp'"
                             <span class="ingredient-name">${TRANSLATIONS[ing] || ing}</span>
                         </div>
                     `).join('')}

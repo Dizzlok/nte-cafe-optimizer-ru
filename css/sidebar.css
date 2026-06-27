@@ -201,3 +201,12 @@
     left: 90px;
     transform: rotate(180deg);
 }
+
+.app-credits {
+    font-size: 0.65rem;
+    color: var(--text2);
+    font-family: var(--mono);
+    text-align: center;
+    padding: 0.5rem 0 0.25rem;
+    letter-spacing: 0.05em;
+}

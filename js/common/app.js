@@ -17,6 +17,7 @@ function normalizeData(obj) {
 
 // ── ГЛАВНЫЙ ФАЙЛ ПРИЛОЖЕНИЯ ────────────────────────────────────────────────
 // Импортируем модули
+import { fixAllNames } from './fix-names.js';
 import { runOptimizer } from '../../calculator/js/optimizer.js';
 import { renderDishes } from '../../calculator/js/ui-dishes.js';
 import { renderCharacters } from '../../calculator/js/ui-characters.js';
@@ -145,6 +146,7 @@ async function loadMasterData() {
 async function init() {
     try {
         masterData = await loadMasterData();
+        masterData = fixAllNames(masterData);
         window.masterData = masterData;
         console.log('Данные успешно загружены:', masterData);
     } catch (error) {

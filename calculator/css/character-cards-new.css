@@ -1,229 +1,241 @@
-/* ============================================ */
-/* СОВРЕМЕННЫЕ КАРТОЧКИ ПЕРСОНАЖЕЙ              */
-/* ============================================ */
+/* ═══════════════════════════════════════════════════════
+   КАРТОЧКИ ПЕРСОНАЖЕЙ — СЕТКА И ОСНОВНЫЕ СТИЛИ
+   ═══════════════════════════════════════════════════════ */
 
-/* Контейнер сетки карточек */
+/* ── СЕТКА КАРТОЧЕК ───────────────────────────────────── */
 .char-cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Авто-заполнение: мин. ширина 280px */
+    gap: 1rem; /* Расстояние между карточками */
 }
 
-/* Карточка персонажа */
+/* ── КАРТОЧКА ПЕРСОНАЖА ────────────────────────────────── */
 .char-card-modern {
     position: relative;
-    background: rgba(19, 22, 30, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 2px solid rgba(37, 41, 56, 0.5);
-    border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    cursor: pointer;
+    background: rgba(19, 22, 30, 0.6); /* Цвет фона карточки (R, G, B, прозрачность) */
+    backdrop-filter: blur(12px); /* Размытие фона за карточкой */
+    -webkit-backdrop-filter: blur(12px); /* Для Safari */
+    border: 2px solid rgba(37, 41, 56, 0.5); /* Цвет и толщина рамки */
+    border-radius: 12px; /* Скругление углов */
+    overflow: hidden; /* Скрывать всё что выходит за границы */
+    transition: all 0.3s ease; /* Плавная анимация 0.3 сек */
+    cursor: pointer; /* Курсор-рука при наведении */
 }
 
-/* Персонаж есть в наличии */
+/* Карточка "в наличии" */
 .char-card-modern.owned {
-    background: rgba(245, 166, 35, 0.08);
-    border-color: rgba(245, 166, 35, 0.4);
+    background: rgba(245, 166, 35, 0.08); /* Оранжевый фон */
+    border-color: rgba(245, 166, 35, 0.4); /* Оранжевая рамка */
     box-shadow: 
-        0 4px 16px rgba(245, 166, 35, 0.15),
-        inset 0 1px 0 rgba(245, 166, 35, 0.1);
+        0 4px 16px rgba(245, 166, 35, 0.15), /* Внешнее свечение */
+        inset 0 1px 0 rgba(245, 166, 35, 0.1); /* Внутреннее свечение */
 }
 
-/* Персонажа нет в наличии */
+/* Карточка "нет в наличии" */
 .char-card-modern.not-owned {
-    background: rgba(26, 30, 42, 0.4);
-    border-color: rgba(46, 51, 71, 0.4);
-    opacity: 0.7;
+    background: rgba(26, 30, 42, 0.4); /* Тёмный фон */
+    border-color: rgba(46, 51, 71, 0.4); /* Тёмная рамка */
+    opacity: 0.6; /* Прозрачность (0.0 - 1.0) */
 }
 
-/* Hover эффекты */
+/* Hover: "в наличии" */
 .char-card-modern.owned:hover {
-    border-color: rgba(245, 166, 35, 0.2);
+    border-color: rgba(245, 166, 35, 0.2); /* Цвет рамки при наведении */
     box-shadow: 
-        0 8px 24px rgba(245, 166, 35, 0.2),
+        0 8px 24px rgba(245, 166, 35, 0.2), /* Усиленное свечение */
         inset 0 1px 0 rgba(245, 166, 35, 0.15);
-    transform: translateY(-2px);
+    transform: translateY(-2px); /* Подъём карточки (px вверх) */
 }
 
+/* Hover: "нет в наличии" */
 .char-card-modern.not-owned:hover {
     border-color: rgba(46, 51, 71, 0.6);
     opacity: 0.85;
     background: rgba(26, 30, 42, 0.5);
 }
 
-/* Верхняя часть карточки с портретом */
+/* ── ШАПКА КАРТОЧКИ (портрет + инфо) ───────────────────── */
 .char-card-header-modern {
     display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 1rem;
-    border-bottom: 1px solid rgba(37, 41, 56, 0.5);
+    align-items: flex-start; /* Выравнивание по верху (flex-start | center | flex-end) */
+    gap: 0.75rem; /* Расстояние между элементами */
+    padding: 1rem; /* Внутренний отступ */
+    border-bottom: 1px solid rgba(37, 41, 56, 0.5); /* Разделительная линия */
 }
 
-/* Портрет персонажа */
+/* ── ПОРТРЕТ ПЕРСОНАЖА ─────────────────────────────────── */
 .char-portrait {
-    width: 56px;
-    height: 56px;
-    border-radius: 8px;
-    object-fit: cover;
-    border: 2px solid rgba(37, 41, 56, 0.8);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    width: 56px; /* Ширина аватара */
+    height: 56px; /* Высота аватара */
+    border-radius: 8px; /* Скругление углов */
+    object-fit: cover; /* Обрезка: cover (заполнить) | contain (вписать) */
+    border: 2px solid rgba(37, 41, 56, 0.8); /* Рамка аватара */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Тень */
 }
 
+/* Портрет для "в наличии" */
 .char-card-modern.owned .char-portrait {
-    border-color: rgba(245, 166, 35, 0.5);
+    border-color: rgba(245, 166, 35, 0.5); /* Оранжевая рамка */
 }
 
-/* Информация о персонаже */
+/* ── ИНФОРМАЦИЯ О ПЕРСОНАЖЕ ────────────────────────────── */
 .char-info {
-    flex: 1;
-    min-width: 0;
+    flex: 1; /* Растягивается на всё доступное место */
+    min-width: 0; /* Разрешить сжатие */
 }
 
 .char-name-row {
     display: flex;
-    align-items: center;
+    align-items: center; /* Центрирование по вертикали */
     gap: 0.5rem;
     margin-bottom: 0.25rem;
 }
 
 .char-name-modern {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.95rem; /* Размер имени */
+    font-weight: 700; /* Жирность: 100-900 (400=normal, 700=bold) */
+    color: var(--text); /* Цвет из CSS-переменной */
+    white-space: nowrap; /* Запрет переноса строк */
+    overflow: hidden; /* Скрывать выходящий текст */
+    text-overflow: ellipsis; /* Многоточие вместо обрезки */
 }
 
+/* Имя для "в наличии" */
 .char-card-modern.owned .char-name-modern {
-    color: var(--accent);
+    color: var(--accent); /* Оранжевый цвет */
 }
 
-/* Специализация персонажа */
+/* ── СПЕЦИАЛИЗАЦИЯ ─────────────────────────────────────── */
 .char-specialty {
     font-size: 0.7rem;
-    color: var(--text3);
-    font-family: var(--mono);
+    color: var(--text3); /* Серый цвет */
+    font-family: var(--mono); /* Моноширинный шрифт */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Индикатор наличия */
+/* ── ИНДИКАТОР НАЛИЧИЯ (зелёная точка) ─────────────────── */
 .char-ownership-badge {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    box-shadow: 0 0 8px currentColor;
+    top: 1rem; /* Отступ сверху */
+    right: 1rem; /* Отступ справа */
+    width: 12px; /* Ширина точки */
+    height: 12px; /* Высота точки */
+    border-radius: 50%; /* Круг (50% = круг, 0 = квадрат) */
+    box-shadow: 0 0 8px currentColor; /* Свечение */
 }
 
+/* Точка "в наличии" */
 .char-ownership-badge.owned {
-    background: var(--green);
+    background: var(--green); /* Зелёный цвет */
     color: var(--green);
 }
 
+/* Точка "нет в наличии" */
 .char-ownership-badge.not-owned {
-    background: var(--text3);
+    background: var(--text3); /* Серый цвет */
     color: var(--text3);
 }
 
-/* Тело карточки с навыками */
+/* ── ТЕЛО КАРТОЧКИ (навыки) ────────────────────────────── */
 .char-card-body-modern {
-    padding: 1rem;
+    padding: 1rem; /* Внутренний отступ */
 }
 
-/* Название навыка */
+/* ── НАЗВАНИЕ НАВЫКА ───────────────────────────────────── */
 .char-skill-name {
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--text2);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    color: var(--text2); /* Цвет заголовка */
+    text-transform: uppercase; /* Регистр: uppercase | lowercase | none */
+    letter-spacing: 0.05em; /* Расстояние между буквами */
     margin-bottom: 0.75rem;
 }
 
+/* Название для "в наличии" */
 .char-card-modern.owned .char-skill-name {
-    color: var(--accent);
+    color: var(--accent); /* Оранжевый */
 }
 
-/* Описание навыка */
+/* ── ОПИСАНИЕ НАВЫКА ───────────────────────────────────── */
 .char-skill-desc {
     font-size: 0.75rem;
-    color: var(--text3);
-    line-height: 1.5;
+    color: var(--text3); /* Серый цвет текста */
+    line-height: 1.5; /* Межстрочный интервал */
     margin-bottom: 1rem;
-    min-height: 40px;
-    white-space: normal;
+    min-height: 40px; /* Минимальная высота блока */
+    white-space: normal; /* Разрешить перенос строк */
 }
 
-/* Селектор уровней */
+/* ── СЕЛЕКТОР УРОВНЕЙ (кнопки L1-L5) ──────────────────── */
 .char-level-selector {
     display: flex;
-    gap: 0.4rem;
-    flex-wrap: wrap;
+    gap: 0.4rem; /* Расстояние между кнопками */
+    flex-wrap: wrap; /* Перенос на новую строку */
     position: relative;
-    z-index: 20;
+    z-index: 20; /* Поверх других элементов */
 }
 
+/* Кнопка уровня */
 .char-level-btn {
-    flex: 1;
-    min-width: 40px;
-    padding: 0.4rem 0.6rem;
-    background: rgba(26, 30, 42, 0.6);
-    border: 1px solid rgba(46, 51, 71, 0.5);
-    border-radius: 6px;
-    color: var(--text3);
+    flex: 1; /* Растягивается */
+    min-width: 40px; /* Минимальная ширина */
+    padding: 0.4rem 0.6rem; /* Внутренний отступ (верх/низ лево/право) */
+    background: rgba(26, 30, 42, 0.6); /* Цвет фона */
+    border: 1px solid rgba(46, 51, 71, 0.5); /* Рамка кнопки */
+    border-radius: 6px; /* Скругление */
+    color: var(--text3); /* Цвет текста */
     font-family: var(--mono);
     font-size: 0.7rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.15s ease; /* Плавная анимация */
     text-align: center;
     position: relative;
     z-index: 20;
 }
 
+/* Hover кнопки */
 .char-level-btn:hover {
     background: rgba(37, 41, 56, 0.6);
     border-color: rgba(74, 79, 99, 0.6);
     color: var(--text2);
 }
 
+/* Активная кнопка (выбранный уровень) */
 .char-level-btn.active {
-    background: rgba(245, 166, 35, 0.2);
-    border-color: var(--accent);
-    color: var(--accent);
-    box-shadow: 0 0 12px rgba(245, 166, 35, 0.3);
+    background: rgba(245, 166, 35, 0.2); /* Оранжевый фон */
+    border-color: var(--accent); /* Оранжевая рамка */
+    color: var(--accent); /* Оранжевый текст */
+    box-shadow: 0 0 12px rgba(245, 166, 35, 0.3); /* Свечение */
 }
 
+/* Кнопки для "нет в наличии" */
 .char-card-modern.not-owned .char-level-btn {
-    opacity: 0.4;
-    cursor: not-allowed;
+    opacity: 0.4; /* Полупрозрачные */
+    cursor: not-allowed; /* Курсор "запрещено" */
 }
 
 .char-card-modern.not-owned .char-level-btn:hover {
-    background: rgba(26, 30, 42, 0.6);
-    border-color: rgba(46, 51, 71, 0.5);
+    background: rgba(26, 30, 42, 0.6); /* Не менять фон */
+    border-color: rgba(46, 51, 71, 0.5); /* Не менять рамку */
 }
 
-/* Чекбокс владения - кликабельная область всей карточки */
-
-/* Иконка ранга */
+/* ── ИКОНКА РАНГА (S, A, B...) ─────────────────────────── */
 .char-rank-img {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    flex-shrink: 0; /* Не сжимается */
+    width: 24px; /* Ширина иконки */
+    height: 24px; /* Высота иконки */
+    object-fit: contain; /* Вписать без обрезки */
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); /* Тень */
 }
 
-/* Адаптивность */
+/* ═══════════════════════════════════════════════════════
+   АДАПТИВНОСТЬ (мобильные устройства)
+   ═══════════════════════════════════════════════════════ */
+
+/* Планшеты (до 900px) */
 @media (max-width: 900px) {
     .char-cards-grid {
         grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -231,8 +243,9 @@
     }
 }
 
+/* Телефоны (до 600px) */
 @media (max-width: 600px) {
     .char-cards-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Одна колонка */
     }
 }

@@ -191,3 +191,30 @@ select option {
     min-height: 40px;
     white-space: normal;
 }
+
+.credits-label {
+    color: var(--text2);
+}
+
+.credits a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.credits a:hover {
+    text-decoration: underline;
+}
+
+.panel-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.panel-title-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 4px rgba(245, 166, 35, 0.4));
+}

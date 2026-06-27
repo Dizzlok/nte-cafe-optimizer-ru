@@ -33,15 +33,15 @@ export function renderCharacters(masterData, TRANSLATIONS, CHARACTER_RANKS, upda
         
         card.innerHTML = `
             <div class="char-card-header-modern">
-                <img src="../assets/images/calculator/characters/${c.name.toLowerCase().replace(/\s+/g, '_')}.png" 
+                <img src="../assets/images/common/characters/avatars/round/100/${c.name.toLowerCase().replace(/\s+/g, '_')}.webp" 
                      alt="${c.name}" 
                      class="char-portrait"
-                     onerror="this.src='./assets/images/common/placeholder-character.png'">
+                     onerror="if(this.src.indexOf('not_found_char')===-1)this.src='./assets/images/common/not_found/not_found_char.webp'">
                 
                 <div class="char-info">
                     <div class="char-name-row">
                         <span class="char-name-modern">${TRANSLATIONS[c.name] || c.name}</span>
-                        <img src="../assets/images/common/ranks/rank_${rank}.png" 
+                        <img src="../assets/images/common/ranks/rank_${rank}.webp" 
                              alt="${rank}" 
                              class="char-rank-img"
                              onerror="this.style.display='none'">
