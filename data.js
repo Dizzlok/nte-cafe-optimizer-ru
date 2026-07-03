@@ -135,6 +135,14 @@ const MASTER_DATA = {
         { "level": 1, "val": 0.01, "req": 1, "type": "Price_Multiply", "tag": "Desserts" },
         { "level": 5, "val": 0.015, "req": 2, "type": "Price_Multiply", "tag": "Desserts" }
       ]
+    },
+    {
+      "name": "Shinku",
+      "skills": [
+        { "level": 1, "val": 0.3, "req": 3, "type": "Price_Flat", "tag": "Beverages" },
+        { "level": 2, "val": 0.3, "req": 3, "type": "Price_Flat", "tag": "Beverages" },
+        { "level": 5, "val": 0.03, "req": 3, "type": "Price_Multiply", "tag": "Beverages" }
+      ]
     }
   ]
 }
